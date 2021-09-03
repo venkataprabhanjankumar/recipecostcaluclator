@@ -18,7 +18,7 @@ class IngredientsForm(forms.ModelForm):
             self.Supplier_Choice = [
                 ("Add Supplier", "Add Supplier"),
             ]
-            for sample in supp:
+            for sample in list(set(supp)):
                 self.Supplier_Choice.append(sample)
             print(self.Supplier_Choice)
         else:
