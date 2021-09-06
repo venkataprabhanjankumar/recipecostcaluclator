@@ -382,7 +382,7 @@
               <div class="col-md-6">
                 <div class="form-group">
                   <label>Filter By Category</label>
-                  <select class="form-control select2bs4" style="width: 100%;">
+                  <select id="ingrident-filter-category" class="form-control select2bs4" style="width: 100%;">
                     <option value="Food">Food</option>
                     <option value="Labour">Labour</option>
                     <option value="Packaging">Packaging</option>
@@ -409,6 +409,7 @@
                       <th>Name</th>
                       <th>Purchase Amount</th>
                       <th>Price</th>
+                        <th>Category</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -423,8 +424,8 @@
                             <td>
                                 {{ ingrideient.caseQuantity }}/{{ ingrideient.packSize }}
                             </td>
-                            <td>
-
+                            <td id="ingrident-category-item">
+                                {{ ingrideient.category }}
                             </td>
                           </tr>
                       {% endfor %}
