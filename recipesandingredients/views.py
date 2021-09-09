@@ -11,6 +11,9 @@ def handleIngredients(request):
     if request.method == 'POST':
         form = IngredientsForm(request=request, data=request.POST)
         print(form.is_valid())
+        print(form)
+        ingMeasurementsData = request.POST.get('ingMeasurementsData')
+        print(ingMeasurementsData)
         if form.is_valid():
             ingname = form.cleaned_data['name']
             try:
@@ -31,11 +34,30 @@ def handleIngredients(request):
                 ingredientsdata.username = request.user
                 ingredientsdata.save()
                 print("Saved")
+                indredients = Ingredients.objects.get(username=request.user, name=form.cleaned_data['name'])
                 if form.cleaned_data['suppliers'] == 'Add Supplier':
-                    indredients = Ingredients.objects.get(username=request.user, name=form.cleaned_data['name'])
                     indredients.suppliers = request.POST.get('customsupplier')
                     indredients.save()
                     print("Saved Suppliers")
+                if ingMeasurementsData == '':
+                    pass
+                else:
+                    ingdata = ingMeasurementsData.split(';')
+                    fromdata = ingdata[0].split(',')
+                    todata = ingdata[1].split(',')
+                    fromunits = ingdata[2].split(',')
+                    tounits = ingdata[3].split(',')
+                    print(ingdata)
+                    print(fromdata)
+                    print(fromunits)
+                    print(todata)
+                    print(tounits)
+                    indredients.fromMeasurementUnits = fromunits[:-1]
+                    indredients.fromMeasurementData = fromdata[:-1]
+                    indredients.toMeasurementUnits = tounits[:-1]
+                    indredients.toMeasurementData = todata[:-1]
+                    indredients.save()
+                    print("Ingredients Saved")
                 return redirect('/recipe/page')
     else:
         user = UserModel.objects.get(username=request.user)

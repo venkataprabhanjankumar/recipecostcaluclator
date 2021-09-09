@@ -6,14 +6,14 @@ class IngredientsForm(forms.ModelForm):
     required_css_class = 'required'
 
     def __init__(self, *args, **kwargs):
-        print(kwargs)
-        print(kwargs.get('request').user)
         self.request = kwargs.pop('request', None)
         usersup = Ingredients.objects.filter(username=self.request.user)
         super(IngredientsForm, self).__init__(*args, **kwargs)
         if usersup.count() > 0:
             supp = []
             for sup in usersup:
+                if sup.suppliers == '':
+                    continue
                 supp.append((sup.suppliers, sup.suppliers))
             self.Supplier_Choice = [
                 ("Add Supplier", "Add Supplier"),
@@ -39,5 +39,5 @@ class IngredientsForm(forms.ModelForm):
 
     class Meta:
         model = Ingredients
-        exclude = ('username', 'fromMeasurement', 'toMeasurement')
+        exclude = ('username', 'fromMeasurementData', 'fromMeasurementUnits', 'toMeasurementData', 'toMeasurementUnits')
         fields = '__all__'
