@@ -152,7 +152,7 @@ def handleRecipes(request):
                         )
                         recipe.other_ing_data.add(ingredient)
                         print("Recipe Added")
-                    return redirect('/recipe/details/' + recipe.id)
+                    return redirect('/recipe/details/' + str(recipe.id))
 
     else:
         form = RecipeForm()
