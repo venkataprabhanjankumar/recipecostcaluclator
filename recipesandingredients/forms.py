@@ -1,5 +1,5 @@
 from django import forms
-from .models import Ingredients
+from .models import Ingredients, RecipesModel, IngredientData
 
 
 class IngredientsForm(forms.ModelForm):
@@ -40,4 +40,13 @@ class IngredientsForm(forms.ModelForm):
     class Meta:
         model = Ingredients
         exclude = ('username', 'fromMeasurementData', 'fromMeasurementUnits', 'toMeasurementData', 'toMeasurementUnits')
+        fields = '__all__'
+
+
+class RecipeForm(forms.ModelForm):
+    yield_units = forms.CharField(label='yield units (servings,cookies,etc)', widget=forms.TextInput())
+
+    class Meta:
+        model = RecipesModel
+        exclude = ('other_ing_data', 'recipe_user')
         fields = '__all__'

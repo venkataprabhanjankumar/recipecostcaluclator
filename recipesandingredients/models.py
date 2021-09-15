@@ -35,7 +35,7 @@ class Ingredients(models.Model):
              ('Dozen (dozen) (12 each)', 'Dozen (dozen) (12 each)'),
              ('Hundred (hundred) (100 each)', 'Hundred (hundred) (100 each)'),
              ('Thousand (thousand) (1000 each)', 'Thousand (thousand) (1000 each)'),
-             ('Million (million) (1000000 each)','Million (million) (1000000 each)')
+             ('Million (million) (1000000 each)', 'Million (million) (1000000 each)')
          )
          ),
         ('-- Time --',
@@ -82,7 +82,7 @@ class Ingredients(models.Model):
     sugarAdded = models.BooleanField(null=True, blank=True)
     usablePercentage = models.IntegerField(null=True, blank=True)
     displayUnits = models.CharField(max_length=225, null=True, blank=True)
-    displayName = models.CharField(max_length=225,null=True, blank=True)
+    displayName = models.CharField(max_length=225, null=True, blank=True)
     notes = models.TextField(null=True, blank=True)
 
     def __str__(self):
@@ -90,3 +90,25 @@ class Ingredients(models.Model):
 
     class Meta:
         db_table = 'Ingredients_Table'
+
+
+class IngredientData(models.Model):
+    ing_name = models.CharField(max_length=225)
+    ing_amount = models.IntegerField()
+    ing_units = models.CharField(max_length=225)
+    ing_description = models.CharField(max_length=225, null=True, blank=True)
+
+    class Meta:
+        db_table = 'Ingredients_data'
+
+
+class RecipesModel(models.Model):
+    recipe_user = models.CharField(max_length=225)
+    recipe_name = models.CharField(max_length=225)
+    recipe_category = models.CharField(max_length=225, null=True, blank=True)
+    recipe_yield_count = models.IntegerField()
+    yield_units = models.CharField(max_length=225)
+    other_ing_data = models.ManyToManyField(IngredientData)
+
+    class Meta:
+        db_table = 'recipe_table'

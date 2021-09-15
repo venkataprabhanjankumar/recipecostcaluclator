@@ -2,8 +2,9 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import render, redirect
 from recipeapp.models import UserModel
-from .forms import IngredientsForm
-from .models import Ingredients
+
+from .forms import IngredientsForm, RecipeForm
+from .models import Ingredients, RecipesModel, IngredientData
 
 
 @login_required(login_url='/login')
@@ -89,4 +90,106 @@ def ingredientsDashboard(request):
             'first_name': user.first_name,
             'last_name': user.last_name,
         }
+    )
+
+
+@login_required(login_url='/login')
+def recipeDashboard(request):
+    user = UserModel.objects.get(username=request.user)
+    recipies = RecipesModel.objects.filter(recipe_user=str(request.user))
+    return render(
+        request,
+        'recipe_dashboard.html',
+        {
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'recipies': recipies
+        }
+    )
+
+
+@login_required(login_url='/login')
+def handleRecipes(request):
+    user = UserModel.objects.get(username=request.user)
+    ingredients = Ingredients.objects.filter(username=request.user)
+    if request.method == 'POST':
+        form = RecipeForm(request.POST)
+        if form.is_valid():
+            try:
+                checkingridient = RecipesModel.objects.get(recipe_user=str(request.user),
+                                                           recipe_name=form.cleaned_data['recipe_name'])
+                form = RecipeForm()
+                return render(
+                    request,
+                    'add_recipe.html',
+                    {
+                        'fail': 'Recipe Name Already Exists',
+                        'username': user.username,
+                        'email': user.email,
+                        'first_name': user.first_name,
+                        'last_name': user.last_name,
+                        'form': form
+                    }
+                )
+            except RecipesModel.DoesNotExist:
+                if 'ingAmount' not in request.POST:
+                    recipe = form.save(commit=False)
+                    recipe.recipe_user = str(request.user)
+                    recipe.save()
+                    return redirect('/recipe/details/' + str(recipe.id))
+                else:
+                    recipe = form.save(commit=False)
+                    recipe.recipe_user = str(request.user)
+                    recipe.save()
+                    for i in range(len(request.POST.getlist('ingAmount'))):
+                        ingredient = IngredientData.objects.create(
+                            ing_name=request.POST.getlist('ingridientName')[i],
+                            ing_amount=request.POST.getlist('ingAmount')[i],
+                            ing_units=request.POST.getlist('ingUnits')[i],
+                            ing_description=request.POST.getlist('ingDescription')[i]
+                        )
+                        recipe.other_ing_data.add(ingredient)
+                        print("Recipe Added")
+                    return redirect('/recipe/details/' + recipe.id)
+
+    else:
+        form = RecipeForm()
+        return render(
+            request,
+            'add_recipe.html',
+            {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'form': form,
+                'ingredients': ingredients
+            }
+        )
+
+
+@login_required(login_url='/login')
+def recipe_detail(request, ing_id):
+    user = UserModel.objects.get(username=request.user)
+    recipe = RecipesModel.objects.get(recipe_user=str(request.user), id=ing_id)
+    return render(
+        request,
+        'each_recipe_detail.html',
+        {
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'recipe': recipe
+        }
+    )
+
+
+@login_required(login_url='/login')
+def edit_recipe(request, ing_id):
+    return render(
+        request,
+        'edit_recipe.html'
     )
