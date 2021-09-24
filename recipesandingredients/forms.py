@@ -29,10 +29,10 @@ class IngredientsForm(forms.ModelForm):
         self.fields['suppliers'] = forms.ChoiceField(choices=self.Supplier_Choice, required=False)
 
     Alleregen_Choices = [
-        ("Cerly", "Cerly"),
-        ("Eggs", "Eggs"),
-        ("Fish", "Fish"),
-        ("Milk", "Milk")
+        ("Cerly", "Cerly"), ("Shellfish", "Shellfish"), ("Eggs", "Eggs"), ("Soy", "Soy"),
+        ("Fish", "Fish"), ("Sulfites", "Sulfites"), ("Milk", "Milk"), ("Tree Nuts", "Tree Nuts"),
+        ("Lupin", "Lupin"), ("Wheat", "Wheat"), ("Molluscs", "Molluscs"), ("Mustard", "Mustard"),
+        ("Peanuts", "Peanuts"), ("Sesame", "Sesame")
     ]
     majorAllergens = forms.MultipleChoiceField(required=False, choices=Alleregen_Choices,
                                                widget=forms.CheckboxSelectMultiple)

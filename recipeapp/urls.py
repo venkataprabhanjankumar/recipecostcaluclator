@@ -14,4 +14,5 @@ urlpatterns = [
     path('personalinfo/edit', views.UpdateContactInfo.as_view(), name='contactInfo'),
     path('personalinfo/change_password', views.updatePassword, name='change_password'),
     path('personalinfo/change_email', views.UpdateEmail.as_view(), name='change_email'),
+    path('feedback', views.user_feedback, name='feedback')
 ]
