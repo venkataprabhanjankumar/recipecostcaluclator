@@ -427,6 +427,7 @@
                       <th>Purchase Amount</th>
                       <th>Price</th>
                         <th>Category</th>
+                        <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -443,6 +444,11 @@
                             </td>
                             <td id="ingrident-category-item">
                                 {{ ingrideient.category }}
+                            </td>
+                            <td>
+                                <a href="/recipe/ingridientdetails/{{ ingrideient.id }}"><i class="fa fa-eye" aria-hidden="true"></i></a>
+                                &nbsp;&nbsp;&nbsp;<a href="/recipe/editing/{{ ingrideient.id }}"><i class="fas fa-edit"></i></a>
+                                &nbsp;&nbsp;&nbsp;<a href="/recipe/delete-ing/{{ ingrideient.id }}"><i class="fas fa-trash"></i></a>
                             </td>
                           </tr>
                       {% endfor %}

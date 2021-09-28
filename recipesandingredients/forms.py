@@ -16,6 +16,7 @@ class IngredientsForm(forms.ModelForm):
                     continue
                 supp.append((sup.suppliers, sup.suppliers))
             self.Supplier_Choice = [
+                ("", "------------"),
                 ("Add Supplier", "Add Supplier"),
             ]
             for sample in list(set(supp)):
@@ -23,7 +24,7 @@ class IngredientsForm(forms.ModelForm):
             print(self.Supplier_Choice)
         else:
             self.Supplier_Choice = [
-                ("--------", "------------"),
+                ("", "------------"),
                 ("Add Supplier", "Add Supplier")
             ]
         self.fields['suppliers'] = forms.ChoiceField(choices=self.Supplier_Choice, required=False)
@@ -39,7 +40,8 @@ class IngredientsForm(forms.ModelForm):
 
     class Meta:
         model = Ingredients
-        exclude = ('username', 'fromMeasurementData', 'fromMeasurementUnits', 'toMeasurementData', 'toMeasurementUnits')
+        exclude = ('username', 'fromMeasurementData', 'fromMeasurementUnits', 'toMeasurementData', 'toMeasurementUnits',
+                   'company_name')
         fields = '__all__'
 
 
@@ -48,5 +50,5 @@ class RecipeForm(forms.ModelForm):
 
     class Meta:
         model = RecipesModel
-        exclude = ('other_ing_data', 'recipe_user')
+        exclude = ('other_ing_data', 'recipe_user', 'company_name')
         fields = '__all__'

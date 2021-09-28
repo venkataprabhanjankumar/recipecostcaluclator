@@ -100,3 +100,16 @@ class FeedBackForm(forms.ModelForm):
     class Meta:
         model = FeedBack
         fields = ['feeling', 'suggestion']
+
+
+class ForgetPassword(forms.Form):
+    password = forms.CharField(max_length=225, widget=forms.PasswordInput(attrs={'placeholder': 'Enter New Password'}),
+                               label='Password')
+    conform_password = forms.CharField(max_length=225,
+                                       widget=forms.PasswordInput(attrs={'placeholder': 'Confirm Password'}),
+                                       label='Confirm Password')
+
+
+class EmailForm(forms.Form):
+    user_email = forms.EmailField(max_length=225, widget=forms.EmailInput(attrs={'placeholder': 'Enter Email'}),
+                                  label='Enter Registered Email')

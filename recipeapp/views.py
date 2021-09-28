@@ -7,11 +7,16 @@ from django.views.generic import UpdateView
 from django.utils.translation import gettext as _
 from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
+from rest_framework.authtoken.models import Token
+from django.conf import settings
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail, Email, To
+from django.contrib.auth.models import User
 
 from .models import UserModel
 from company.models import Company
 from .forms import RegistrationForm, LoginForm, UpdateEmailForm, UpdateContactInfoForm, ForgetPasswordForm, \
-    UserSettingsForm, FeedBackForm
+    UserSettingsForm, FeedBackForm, EmailForm, ForgetPassword
 
 
 def index_page(request):
@@ -364,6 +369,137 @@ def user_feedback(request):
                 'company_details': company_details,
                 'company_name': company_name
             }
+        )
+
+
+def forget_password(request):
+    if request.method == 'POST':
+        form = EmailForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['user_email']
+            try:
+                user = UserModel.objects.get(email=email)
+                try:
+                    authToken = Token.objects.get(user_id=user.id)
+                    return render(
+                        request,
+                        'forget_password.html',
+                        {
+                            'form': form,
+                            'fail': 'Email Already Sent to ' + email
+                        }
+                    )
+                except Token.DoesNotExist:
+                    token_generation = Token.objects.create(user_id=user.id)
+                    token_generation.save()
+                    authToken = Token.objects.get(user_id=user.id)
+                    authKey = authToken.key
+                    try:
+                        sg = SendGridAPIClient(settings.SENDGRID_EMAIL_API)
+                        message = Mail(
+                            from_email=Email(settings.FROM_EMAIL),
+                            to_emails=To(email),
+                            subject='Password Reset For Recipe Cost Calculator',
+                            html_content='<a href="https://recipecostdemo.herokuapp.com/update-password/' + authKey + '"><input '
+                                                                                                                      'type="submit" '
+                                                                                                                      'value="Reset '
+                                                                                                                      'Password"></a> '
+                        )
+                        response = sg.send(message)
+                        print(response.status_code)
+                        form = EmailForm()
+                        return render(
+                            request,
+                            'forget_password.html',
+                            {
+                                'form': form,
+                                'success': 'Password reset link sent to  ' + email
+                            }
+                        )
+                    except Exception:
+                        return render(
+                            request,
+                            'forget_password.html',
+                            {
+                                'form': form,
+                                'fail': 'An Error Occurred '
+                            }
+                        )
+            except UserModel.DoesNotExist:
+                return render(
+                    request,
+                    'forget_password.html',
+                    {
+                        'form': form,
+                        'fail': 'Please Enter Registered Email'
+                    }
+                )
+        else:
+            return render(
+                request,
+                'forget_password.html',
+                {
+                    'form': form,
+                    'fail': 'Invalid Data'
+                }
+            )
+    else:
+        form = EmailForm()
+        return render(
+            request,
+            'forget_password.html',
+            {
+                'form': form
+            }
+        )
+
+
+def update_password(request, token):
+    try:
+        user_token = Token.objects.get(key=token)
+        if request.method == 'POST':
+            form = ForgetPassword(request.POST)
+            if form.is_valid():
+                password = form.cleaned_data['password']
+                cpassword = form.cleaned_data['conform_password']
+                if password == cpassword:
+                    print(user_token)
+                    print(user_token.user)
+                    user = UserModel.objects.get(username=user_token.user)
+                    user.set_password(password)
+                    user.save()
+                    user_token.delete()
+                    return render(
+                        request,
+                        'update_forget_password.html',
+                        {
+                            'success': 'Password Updated',
+                            'expires': False
+                        }
+                    )
+                else:
+                    form = ForgetPassword()
+                    return render(
+                        request,
+                        'update_forget_password.html',
+                        {
+                            'fail': 'Password not Matched',
+                            'expires': False,
+                            'form': form
+                        }
+                    )
+        else:
+            form = ForgetPassword()
+            return render(
+                request,
+                'update_forget_password.html',
+                {'expires': False, 'form': form}
+            )
+    except Token.DoesNotExist:
+        return render(
+            request,
+            'update_forget_password.html',
+            {'expires': True}
         )
 
 

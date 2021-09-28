@@ -140,11 +140,12 @@ class Ingredients(models.Model):
     ]
 
     username = models.CharField(max_length=225)
+    company_name = models.CharField(max_length=225)
     name = models.CharField(max_length=225)
     price = models.FloatField()
-    caseQuantity = models.IntegerField(null=True, blank=True)
-    packSize = models.IntegerField(null=True, blank=True)
-    qtyUnits = models.CharField(max_length=225, null=True, blank=True, choices=qtyUnits_Choices)
+    caseQuantity = models.IntegerField()
+    packSize = models.IntegerField()
+    qtyUnits = models.CharField(max_length=225, choices=qtyUnits_Choices)
     category = models.CharField(max_length=225, null=True, blank=True, choices=Category_Choices)
     suppliers = models.CharField(max_length=225, blank=True, null=True)
     orderCode = models.CharField(max_length=225, blank=True, null=True)
@@ -190,7 +191,7 @@ class RecipesModel(models.Model):
         ("Packaging", "Packaging"),
         ("UnCategorized", "UnCategorized")
     ]
-
+    company_name = models.CharField(max_length=225)
     recipe_user = models.CharField(max_length=225)
     recipe_name = models.CharField(max_length=225)
     recipe_category = models.CharField(max_length=225, null=True, blank=True, choices=Category_Choices)

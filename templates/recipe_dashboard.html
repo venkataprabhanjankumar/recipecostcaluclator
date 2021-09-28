@@ -391,7 +391,7 @@
                   <label>Filter By Category</label>
                   <select id="recipe-filter-category" class="form-control select2bs4" style="width: 100%;">
                     <option value="Food">Food</option>
-                    <option value="Labour">Labour</option>
+                    <option value="Labour">Labor</option>
                     <option value="Packaging">Packaging</option>
                       <option value="UnCategorized">UnCategorized</option>
                   </select>
@@ -416,6 +416,7 @@
                       <th>Name</th>
                       <th>Purchase Amount</th>
                         <th>Category</th>
+                        <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -429,6 +430,11 @@
                             </td>
                             <td>
                                 {{ recipie.recipe_category }}
+                            </td>
+                            <td>
+                                <a href="/recipe/details/{{ recipie.id }}"><i class="fa fa-eye" aria-hidden="true"></i></a>
+                                &nbsp;&nbsp;&nbsp;<a href="/recipe/edit/{{ recipie.id }}"><i class="fas fa-edit"></i></a>
+                                &nbsp;&nbsp;&nbsp;<a href="/recipe/delete-recipe/{{ recipie.id }}"><i class="fas fa-trash"></i></a>
                             </td>
                         </tr>
                     {% endfor %}
