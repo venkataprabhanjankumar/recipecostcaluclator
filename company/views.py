@@ -127,7 +127,7 @@ def company_settings(request):
     else:
         many_companies = False
     company_name = request.session.get('company_name')
-    company_instance = Company.objects.get(name=company_name)
+    company_instance = Company.objects.get(name=company_name,user=request.user)
     form1 = CompanySettings(instance=company_instance)
     form2 = CurrencyDisplay(instance=company_instance,
                             initial={'display_currency': 'before', 'round_currency': 'No'})
