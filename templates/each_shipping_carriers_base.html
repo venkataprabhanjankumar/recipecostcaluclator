@@ -3,7 +3,6 @@
 <head>
     {% load static %}
     {% load i18n %}
-    {% load crispy_forms_filters %}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Recipe Cost Calculator</title>
@@ -17,8 +16,6 @@
   <link rel="stylesheet" href="{% static 'dist/css/adminlte.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/handleingredients.css' %}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css' %}">
-    <script type="text/javascript" src="{% static 'js/handle_recipies.js' %}"></script>
     <script src="{% static 'js/company_options.js' %}"></script>
 </head>
 <body class="hold-transition sidebar-mini">
@@ -131,6 +128,7 @@
   </li>
     </ul>
   </nav>
+
   <!-- /.navbar -->
 
   <!-- Main Sidebar Container -->
@@ -147,13 +145,25 @@
           <br/><br/>
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           <li class="nav-item menu-open">
-            <li class="nav-item">
-                <a class="venobox vbox-item" data-vbtype="vimeo" data-autoplay="true" href="https://vimeo.com/428390348"><i class="fa fa-video-camera" aria-hidden="true"></i> Watch Introduction Video</a>
-              </li>
+                <li class="nav-item">
+                    <a href="{% url 'new_shipping_carrier' %}"><i class="fa fa-plus" aria-hidden="true"></i> New Shipping Carrier</a>
+                </li>
                 <br/>
-              <li class="nav-item">
-                <a href="{% url 'feedback' %}"><i class="fa fa-commenting" aria-hidden="true"></i> Send Feedback</a>
-              </li>
+                <li class="nav-item">
+                    <a href="/company/shipping-carriers/edit/{{ shipping_carrier.id }}"><i class="fas fa-edit"></i> Edit Shipping Carrier</a>
+                </li>
+                <br/>
+                <li class="nav-item">
+                    <a href="/company/shipping-carriers/info/{{ shipping_carrier.id }}"><i class="fa fa-eye" aria-hidden="true"></i> View Shipping Carrier</a>
+                </li>
+                <br/>
+                <li class="nav-item">
+                    <a href="/company/shipping-carriers/delete/{{ shipping_carrier.id }}"><i class="fas fa-trash"></i> Delete Shipping Carrier</a>
+                </li>
+                <br/>
+                <li class="nav-item">
+                    <a href="{% url 'feedback' %}"><i class="fa fa-commenting" aria-hidden="true"></i> Send Feedback</a>
+                </li>
           </li>
         </ul>
       </nav>
@@ -171,26 +181,10 @@
         <div class="content">
           <div class="container-fluid">
               <br/><br/>
+                <!-- main content -->
+                {% block content %}
 
-              <!--form-->
-            {% if fail %}
-                <p><span style="color: crimson;font-size: 16px">{{ fail }}</span></p>
-            {% endif %}
-              <form method="post">
-                  {% csrf_token %}
-                  {{ form | crispy }}
-                    <div id="selected-ingredients">
-
-                    </div>
-                  <select class="js-example-basic-single" id="ingredientList" style="width: 350px;align-content: center">
-                    <option value="">Select Ingredient or Search </option>
-                      {% for each_ing in ingredients %}
-                          <option value="{{ each_ing.name }}">{{ each_ing.name }} ({{ each_ing.caseQuantity }}/{{ each_ing.packSize }}  {{ each_ing.qtyUnits }})</option>
-                      {% endfor %}
-                  </select>
-              <br/><br/>
-                  <button type="submit" class="btn btn-success">{% trans 'Create Recipe' %}</button>
-              </form>
+                {% endblock %}
           </div>
         </div>
       </div>
@@ -218,15 +212,9 @@
 
 <!-- jQuery -->
 <script src="{% static 'plugins/jquery/jquery.min.js' %}"></script>
-<script src="{% static 'plugins/select2/js/select2.min.js' %}"></script>
 <!-- Bootstrap 4 -->
 <script src="{% static 'plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 <!-- AdminLTE App -->
 <script src="{% static 'dist/js/adminlte.min.js' %}"></script>
-<script>
-    $(document).ready(function() {
-        $('.js-example-basic-single').select2();
-    });
-</script>
 </body>
 </html>
