@@ -21,5 +21,6 @@ urlpatterns = [
     path('suppliers/delete/<int:supplier_id>', views.delete_supplier),
     path('download/suppliers', views.download_suppliers, name='download_suppliers'),
     path('listcategories', views.category_dashboard, name='category_dashboard'),
-    path('delete-cat/<int:cat_id>', views.delete_category)
+    path('delete-cat/<int:cat_id>', views.delete_category),
+    path('handle_measurements', views.handle_measurement)
 ]

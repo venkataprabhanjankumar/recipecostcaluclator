@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import render, redirect
@@ -49,10 +51,11 @@ def handleIngredients(request):
             except Ingredients.DoesNotExist:
                 ingredientsdata = form.save(commit=False)
                 ingredientsdata.username = request.user
+                ingredientsdata.company_name = company_name
                 ingredientsdata.save()
                 print("Saved")
-                indredients = Ingredients.objects.get(username=request.user, name=form.cleaned_data['name'])
-                indredients.company_name = company_name
+                indredients = Ingredients.objects.get(username=request.user, name=form.cleaned_data['name'],company_name=company_name)
+                indredients.nutriationData = request.POST.get('nutri-data-link-value')
                 indredients.save()
                 if form.cleaned_data['suppliers'] == 'Add Supplier':
                     indredients.suppliers = request.POST.get('customsupplier')
@@ -424,11 +427,11 @@ def edit_ingredient(request, ing_id):
     if request.method == 'POST':
         form = IngredientsForm(instance=ingredient, request=request, data=request.POST)
         if form.is_valid():
-            print("Valid")
-            print(request.POST)
             form.save()
             indredients = Ingredients.objects.get(username=request.user, name=form.cleaned_data['name'],
                                                   company_name=company_name)
+            indredients.nutriationData = request.POST.get('nutri-data-link-value')
+            indredients.save()
             if form.cleaned_data['suppliers'] == 'Add Supplier':
                 indredients.suppliers = request.POST.get('customsupplier')
                 indredients.save()
@@ -479,6 +482,7 @@ def edit_ingredient(request, ing_id):
         )
     else:
         form = IngredientsForm(instance=ingredient, request=request)
+        print(ingredient.hasMajorAllergens)
         return render(
             request,
             'edit_ingridient.html',
@@ -801,3 +805,22 @@ def delete_category(request, cat_id):
     category = IngredientCategories.objects.get(id=cat_id)
     category.delete()
     return redirect('/recipe/listcategories')
+
+
+@login_required(login_url='/login')
+def handle_measurement(request):
+    print(request.POST)
+    with open('./measurments/measurements.csv', 'r') as csv_file:
+        csv_reader = csv.reader(csv_file)
+        fields = next(csv_reader)
+        data = []
+        for row in csv_reader:
+            if row[1] == request.POST.get('selected_food'):
+                if row[7] != 'Quantity not specified':
+                    for each_qty in Ingredients.qtyUnits_Choices:
+                        for qty in each_qty[1:2]:
+                            for each in qty:
+                                if each[0][each[0].index("(") + 1:each[0].index(")")] == row[7].split(' ')[-1]:
+                                    data.append([row[7], row[8], each[0]])
+        print(data)
+    return HttpResponse({json.dumps({'measurement_units': data})}, content_type='application/json')
