@@ -22,5 +22,7 @@ urlpatterns = [
     path('download/suppliers', views.download_suppliers, name='download_suppliers'),
     path('listcategories', views.category_dashboard, name='category_dashboard'),
     path('delete-cat/<int:cat_id>', views.delete_category),
-    path('handle_measurements', views.handle_measurement)
+    path('handle_measurements', views.handle_measurement),
+    path('storagearea/new', views.crate_storage_area, name='create_storage'),
+    path('storagearea/edit/<int:storage_area_id>', views.edit_storage_area)
 ]

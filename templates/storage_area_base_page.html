@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
     {% load static %}
+    {% load crispy_forms_filters %}
+    {% load i18n %}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Recipe Cost Calculator</title>
@@ -10,10 +12,10 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <!-- Font Awesome Icons -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
   <!-- Theme style -->
   <link rel="stylesheet" href="{% static 'dist/css/adminlte.min.css' %}">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="{% static 'js/company_options.js' %}"></script>
     <style>
         .list-group-item:first-child {
@@ -41,6 +43,28 @@
         .navbar-nav .nav-item li.active>a{
             font-weight: bold;
             color: #eee;
+        }
+        .page-header {
+            margin: 0px 0px 10px;
+            padding-right: 15px;
+            padding-left: 40px;
+        }
+        .row {
+            margin-left: 15px;
+            margin-right: 15px;
+        }
+
+        .panel-primary {
+            border-color: #2866AA;
+        }
+        .panel {
+            border: none;
+            border-top: 3px solid #212121;
+            border-radius: 3px;
+            box-shadow: 0 1px 1px rgb(0 0 0.1);
+        }
+        panel-body {
+            padding: 15px;
         }
     </style>
 </head>
@@ -175,31 +199,60 @@
         </div>
       </div>
 
-      <!-- SidebarSearch Form -->
-      <div class="form-inline">
-
-      </div>
-
       <!-- Sidebar Menu -->
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-          <li class="nav-item menu-open">
-            <a href="/recipe/new"><i class="fa fa-plus" aria-hidden="true"></i> New Ingredient</a>
-              <br/><br/>
-            <ul class="nav nav-treeview">
               <li class="nav-item">
-                <a href="/recipe/newrecipe"><i class="fa fa-plus" aria-hidden="true"></i> New Recipe</a>
+                <a href="#"><i class="fas fa-stopwatch"></i> Current Inventory</a>
               </li>
-                <br/>
               <li class="nav-item">
-                <a class="venobox vbox-item" data-vbtype="vimeo" data-autoplay="true" href="https://vimeo.com/428390348"><i class="fa fa-video-camera" aria-hidden="true"></i> Watch Introduction Video</a>
+                <a href="#" class="nav-link"><i class="fa fa-th-list" aria-hidden="true"></i> Previous Inventories</a>
               </li>
-                <br/>
+                <li class="nav-item">
+                <a href="#" class="nav-link"><i class="fa fa-exclamation-circle" aria-hidden="true"></i> Below Par Ingredients</a>
+              </li>
+                <li class="nav-item">
+                <a href="#" class="nav-link"><i class="fa fa-plus" aria-hidden="true"></i> Count Raw Materials</a>
+              </li>
+                <li class="nav-item">
+                <a href="#" class="nav-link"><i class="fas fa-shopping-cart"></i> Receive Raw Materials</a>
+              </li>
+                <li class="nav-item">
+                <a href="#" class="nav-link"><i class="fas fa-shopping-cart"></i> Subtract Raw Materials</a>
+              </li>
+                <li class="nav-item">
+                <a href="#" class="nav-link"><i class="fas fa-shopping-cart"></i> Subtract Raw Materials</a>
+              </li>
+                <li class="nav-item">
+                <a href="#" class="nav-link"><i class="fas fa-code"></i> Lot Codes</a>
+              </li>
+                <li class="nav-item">
+                <a href="#" class="nav-link"><i class="fas fa-code"></i> Danger Area</a>
+              </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                          <i class="fas fa-archive"></i>Storage Areas
+                        <i class="fas fa-angle-left right"></i>
+                    </a>
+                    <ul class="nav nav-treeview">
+                      <li class="nav-item">
+                        <a href="{% url 'create_storage' %}" class="nav-link">
+                          <i class="fa fa-plus" aria-hidden="true"></i>
+                          New Storage Area
+                        </a>
+                      </li>
+                      {% for storage_area in storage_areas %}
+                          <li class="nav-item">
+                            <a href="/recipe/storagearea/edit/{{ storage_area.id }}" class="nav-link">
+                            {{ storage_area.name }}
+                        </a>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  </li>
               <li class="nav-item">
                 <a href="{% url 'feedback' %}"><i class="fa fa-commenting" aria-hidden="true"></i> Send Feedback</a>
               </li>
-            </ul>
-          </li>
         </ul>
       </nav>
         <div style="padding-top: 250px">
@@ -209,92 +262,20 @@
     </div>
     <!-- /.sidebar -->
   </aside>
-
   <!-- Content Wrapper. Contains page content -->
+    {% block main %}
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
-    <div class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1 class="m-0">Starter Page</h1>
-          </div><!-- /.col -->
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">Starter Page</li>
-            </ol>
-          </div><!-- /.col -->
-        </div><!-- /.row -->
-      </div><!-- /.container-fluid -->
-    </div>
-    <!-- /.content-header -->
 
-    <!-- Main content -->
-    <div class="content">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-lg-6">
-            <div class="card">
-              <div class="card-body">
-                <h5 class="card-title">Card title</h5>
+      {% block content %}
 
-                <p class="card-text">
-                  Some quick example text to build on the card title and make up the bulk of the card's
-                  content.
-                </p>
 
-                <a href="#" class="card-link">Card link</a>
-                <a href="#" class="card-link">Another link</a>
-              </div>
-            </div>
+      {% endblock %}
 
-            <div class="card card-primary card-outline">
-              <div class="card-body">
-                <h5 class="card-title">Card title</h5>
 
-                <p class="card-text">
-                  Some quick example text to build on the card title and make up the bulk of the card's
-                  content.
-                </p>
-                <a href="#" class="card-link">Card link</a>
-                <a href="#" class="card-link">Another link</a>
-              </div>
-            </div><!-- /.card -->
-          </div>
-          <!-- /.col-md-6 -->
-          <div class="col-lg-6">
-            <div class="card">
-              <div class="card-header">
-                <h5 class="m-0">Featured</h5>
-              </div>
-              <div class="card-body">
-                <h6 class="card-title">Special title treatment</h6>
-
-                <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                <a href="#" class="btn btn-primary">Go somewhere</a>
-              </div>
-            </div>
-
-            <div class="card card-primary card-outline">
-              <div class="card-header">
-                <h5 class="m-0">Featured</h5>
-              </div>
-              <div class="card-body">
-                <h6 class="card-title">Special title treatment</h6>
-
-                <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                <a href="#" class="btn btn-primary">Go somewhere</a>
-              </div>
-            </div>
-          </div>
-          <!-- /.col-md-6 -->
-        </div>
-        <!-- /.row -->
-      </div><!-- /.container-fluid -->
-    </div>
     <!-- /.content -->
   </div>
+    {% endblock main %}
   <!-- /.content-wrapper -->
 
   <!-- Control Sidebar -->

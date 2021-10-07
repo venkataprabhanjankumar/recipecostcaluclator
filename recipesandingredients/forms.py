@@ -1,5 +1,5 @@
 from django import forms
-from .models import Ingredients, RecipesModel, IngredientCategories, Suppliers
+from .models import Ingredients, RecipesModel, IngredientCategories, Suppliers, StorageAreas
 
 
 class IngredientsForm(forms.ModelForm):
@@ -29,13 +29,19 @@ class IngredientsForm(forms.ModelForm):
                 ("Add Supplier", "Add Supplier")
             ]
         customer_categeroy_choices = [('', '-----------')]
+        storage_choices = [('', '-----------')]
         user_categories = IngredientCategories.objects.filter(user=self.request.user,
                                                               company_name=self.request.session['company_name'],
                                                               category_type='ingredient')
         for each in user_categories:
             customer_categeroy_choices.append((each.category, each.category))
+        storage_filter = StorageAreas.objects.filter(user=self.request.user.username,
+                                                     company_name=self.request.session['company_name'])
+        for storage in storage_filter:
+            storage_choices.append((storage.name, storage.name))
         self.fields['suppliers'] = forms.ChoiceField(choices=self.Supplier_Choice, required=False)
         self.fields['category'] = forms.ChoiceField(choices=customer_categeroy_choices, required=False)
+        self.fields['storageAreas'] = forms.ChoiceField(choices=storage_choices, required=False)
 
     Alleregen_Choices = [
         ("Cerly", "Cerly"), ("Shellfish", "Shellfish"), ("Eggs", "Eggs"), ("Soy", "Soy"),
@@ -97,5 +103,12 @@ class SuppliersForm(forms.ModelForm):
 class UpdateSupplier(forms.ModelForm):
     class Meta:
         model = Suppliers
-        exclude = ('user', 'company_name','delivery_days')
+        exclude = ('user', 'company_name', 'delivery_days')
+        fields = '__all__'
+
+
+class StorageAreaForm(forms.ModelForm):
+    class Meta:
+        model = StorageAreas
+        exclude = ('user', 'company_name')
         fields = '__all__'

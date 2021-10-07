@@ -11,8 +11,8 @@ import csv
 from recipeapp.models import UserModel
 from company.models import Company
 
-from .forms import IngredientsForm, RecipeForm, SuppliersForm, UpdateSupplier
-from .models import Ingredients, RecipesModel, IngredientData, Suppliers, IngredientCategories
+from .forms import IngredientsForm, RecipeForm, SuppliersForm, UpdateSupplier, StorageAreaForm
+from .models import Ingredients, RecipesModel, IngredientData, Suppliers, IngredientCategories, StorageAreas
 
 
 @login_required(login_url='/login')
@@ -54,7 +54,8 @@ def handleIngredients(request):
                 ingredientsdata.company_name = company_name
                 ingredientsdata.save()
                 print("Saved")
-                indredients = Ingredients.objects.get(username=request.user, name=form.cleaned_data['name'],company_name=company_name)
+                indredients = Ingredients.objects.get(username=request.user, name=form.cleaned_data['name'],
+                                                      company_name=company_name)
                 indredients.nutriationData = request.POST.get('nutri-data-link-value')
                 indredients.save()
                 if form.cleaned_data['suppliers'] == 'Add Supplier':
@@ -194,11 +195,11 @@ def handleRecipes(request):
                 else:
                     recipe = form.save(commit=False)
                     recipe.recipe_user = str(request.user)
+                    recipe.company_name = company_name
                     recipe.save()
                     recipedetails = RecipesModel.objects.get(recipe_user=str(request.user),
-                                                             recipe_name=form.cleaned_data['recipe_name'])
-                    recipedetails.company_name = company_name
-                    recipedetails.save()
+                                                             recipe_name=form.cleaned_data['recipe_name'],
+                                                             company_name=company_name)
                     for i in range(len(request.POST.getlist('ingAmount'))):
                         ingredient = IngredientData.objects.create(
                             ing_name=request.POST.getlist('ingridientName')[i],
@@ -294,7 +295,7 @@ def edit_recipe(request, ing_id):
                 raise RecipesModel.DoesNotExist
             else:
                 check_recipe = RecipesModel.objects.get(recipe_user=str(request.user),
-                                                        recipe_name=recipe_name)
+                                                        recipe_name=recipe_name, company_name=company_name)
                 return render(
                     request,
                     'edit_recipe.html',
@@ -824,3 +825,132 @@ def handle_measurement(request):
                                     data.append([row[7], row[8], each[0]])
         print(data)
     return HttpResponse({json.dumps({'measurement_units': data})}, content_type='application/json')
+
+
+@login_required(login_url='/login')
+def crate_storage_area(request):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session.get('company_name')
+    storage_areas = StorageAreas.objects.filter(user=request.user.username, company_name=company_name)
+    if request.method == 'POST':
+        form = StorageAreaForm(request.POST)
+        if form.is_valid():
+            storage_area = form.save(commit=False)
+            storage_area.user = request.user.username
+            storage_area.company_name = company_name
+            storage_area.save()
+            print(storage_area.id)
+            return redirect('/recipe/storagearea/edit/' + str(storage_area.id))
+        else:
+            return render(
+                request,
+                'storage_areas.html',
+                {
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'many_companies': many_companies,
+                    'company_details': company_details,
+                    'company_name': company_name,
+                    'storage_areas': storage_areas,
+                    'form': form
+                }
+            )
+    else:
+        form = StorageAreaForm()
+        return render(
+            request,
+            'storage_areas.html',
+            {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'many_companies': many_companies,
+                'company_details': company_details,
+                'company_name': company_name,
+                'storage_areas': storage_areas,
+                'form': form
+            }
+        )
+
+
+@login_required(login_url='/login')
+def edit_storage_area(request, storage_area_id):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session.get('company_name')
+    storage_area = StorageAreas.objects.get(id=storage_area_id)
+    if request.method == 'POST':
+        form = StorageAreaForm(instance=storage_area, data=request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            try:
+                if name != storage_area.name:
+                    check_area = StorageAreas.objects.get(user=request.user.username, company_name=company_name,
+                                                          name=name)
+                else:
+                    form.save()
+                    return redirect('/recipe/storagearea/edit/' + str(storage_area_id))
+                return render(
+                    request,
+                    'edit_storage_area.html',
+                    {
+                        'username': user.username,
+                        'email': user.email,
+                        'first_name': user.first_name,
+                        'last_name': user.last_name,
+                        'many_companies': many_companies,
+                        'company_details': company_details,
+                        'company_name': company_name,
+                        'storage_area': storage_area,
+                        'form': form,
+                        'fail': 'Name Already taken'
+                    }
+                )
+            except StorageAreas.DoesNotExist:
+                form.save()
+                return redirect('/recipe/storagearea/edit/' + str(storage_area_id))
+        else:
+            return render(
+                request,
+                'edit_storage_area.html',
+                {
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'many_companies': many_companies,
+                    'company_details': company_details,
+                    'company_name': company_name,
+                    'storage_area': storage_area,
+                    'form': form
+                }
+            )
+    else:
+        form = StorageAreaForm(instance=storage_area)
+        return render(
+            request,
+            'edit_storage_area.html',
+            {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'many_companies': many_companies,
+                'company_details': company_details,
+                'company_name': company_name,
+                'storage_area': storage_area,
+                'form': form
+            }
+        )

@@ -228,3 +228,10 @@ class RecipesModel(models.Model):
 
     class Meta:
         db_table = 'recipe_table'
+
+
+class StorageAreas(models.Model):
+    user = models.CharField(max_length=225)
+    company_name = models.CharField(max_length=225)
+    name = models.CharField(max_length=225)
+    description = models.TextField(max_length=225,blank=True)
