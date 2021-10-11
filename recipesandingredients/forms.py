@@ -1,5 +1,5 @@
 from django import forms
-from .models import Ingredients, RecipesModel, IngredientCategories, Suppliers, StorageAreas
+from .models import Ingredients, RecipesModel, IngredientCategories, Suppliers, StorageAreas, NutritionDetails
 
 
 class IngredientsForm(forms.ModelForm):
@@ -111,4 +111,11 @@ class StorageAreaForm(forms.ModelForm):
     class Meta:
         model = StorageAreas
         exclude = ('user', 'company_name')
+        fields = '__all__'
+
+
+class NutritionDetailsForm(forms.ModelForm):
+    class Meta:
+        model = NutritionDetails
+        exclude = ('user', 'company_name', 'ingredient')
         fields = '__all__'

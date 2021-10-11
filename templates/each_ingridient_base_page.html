@@ -21,6 +21,7 @@
     <script src="{% static 'js/handle_nutritions.js' %}"></script>
     <script src="{% static 'js/company_options.js' %}"></script>
     <script src="{% static 'js/update_nutritions.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/ingridents_filter.js' %}"></script>
 </head>
 <body class="hold-transition sidebar-mini">
 {% block body %}
@@ -159,6 +160,18 @@
                 <br/>
                 <li class="nav-item">
                     <a href="/recipe/ingridientdetails/{{ ingredient.id }}"><i class="fa fa-eye" aria-hidden="true"></i> View Ingredient</a>
+                </li>
+                <br/>
+                <li class="nav-item">
+                    <a href="/recipe/uploadimage/{{ ingredient.id }}"><i class="fa fa-picture-o" aria-hidden="true"></i>Images </a>
+                </li>
+                <br/>
+                <li class="nav-item">
+                    <a href="/recipe/replaceingredients/{{ ingredient.id }}"><i class="fa fa-random" aria-hidden="true"></i> Replace Ingredient </a>
+                </li>
+                <br/>
+                <li class="nav-item">
+                    <a href="/recipe/delete-ing/{{ ingredient.id }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete Ingredient </a>
                 </li>
                 <br/>
                 <li class="nav-item">

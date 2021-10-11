@@ -228,10 +228,6 @@
                 <a href="/recipe/download"><i class="fa fa-download" aria-hidden="true"></i> Download Ingredients</a>
               </li>
                 <br/>
-                <li class="nav-item">
-                <a href="#"><i class="fa fa-upload" aria-hidden="true"></i> Upload Ingredients</a>
-              </li>
-                <br/>
               <li class="nav-item">
                 <a class="venobox vbox-item" data-vbtype="vimeo" data-autoplay="true" href="https://vimeo.com/428390348"><i class="fa fa-video-camera" aria-hidden="true"></i> Watch Introduction Video</a>
               </li>
@@ -283,10 +279,9 @@
                 <div class="form-group">
                   <label>Filter By Category</label>
                   <select id="ingrident-filter-category" class="form-control select2bs4" style="width: 100%;">
-                    <option value="Food">Food</option>
-                    <option value="Labor">Labor</option>
-                    <option value="Packaging">Packaging</option>
-                      <option value="UnCategorized">UnCategorized</option>
+                    {% for each_category in ingredient_categories %}
+                        <option value="{{ each_category.category }}">{{ each_category.category }}</option>
+                    {% endfor %}
                   </select>
                 </div>
               </div>

@@ -12,7 +12,8 @@ from recipeapp.models import UserModel
 from company.models import Company
 
 from .forms import IngredientsForm, RecipeForm, SuppliersForm, UpdateSupplier, StorageAreaForm
-from .models import Ingredients, RecipesModel, IngredientData, Suppliers, IngredientCategories, StorageAreas
+from .models import Ingredients, RecipesModel, IngredientData, Suppliers, IngredientCategories, StorageAreas, \
+    IngredientImages
 
 
 @login_required(login_url='/login')
@@ -25,7 +26,9 @@ def handleIngredients(request):
         many_companies = False
     company_name = request.session['company_name']
     if request.method == 'POST':
+        print(request.POST)
         form = IngredientsForm(request=request, data=request.POST)
+        print(form)
         print(form.is_valid())
         ingMeasurementsData = request.POST.get('ingMeasurementsData')
         print(ingMeasurementsData)
@@ -79,6 +82,21 @@ def handleIngredients(request):
                     indredients.save()
                     print("Ingredients Saved")
                 return redirect('/recipe/page')
+        else:
+            return render(
+                request,
+                'add_ingredients.html',
+                {
+                    'form': form,
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'many_companies': many_companies,
+                    'company_details': company_details,
+                    'company_name': company_name
+                }
+            )
     else:
         form = IngredientsForm(request=request)
         return render(
@@ -107,6 +125,8 @@ def ingredientsDashboard(request):
     else:
         many_companies = False
     ingridients = Ingredients.objects.filter(username=request.user, company_name=company_name)
+    ingredient_categories = IngredientCategories.objects.filter(user=request.user.username, company_name=company_name,
+                                                                category_type='ingredient')
     return render(
         request,
         'ingredients_dashboard.html',
@@ -118,7 +138,8 @@ def ingredientsDashboard(request):
             'last_name': user.last_name,
             'many_companies': many_companies,
             'company_details': company_details,
-            'company_name': company_name
+            'company_name': company_name,
+            'ingredient_categories': ingredient_categories
         }
     )
 
@@ -133,6 +154,8 @@ def recipeDashboard(request):
         many_companies = False
     company_name = request.session['company_name']
     recipies = RecipesModel.objects.filter(recipe_user=str(request.user), company_name=company_name)
+    recipe_categories = IngredientCategories.objects.filter(user=request.user.username, company_name=company_name,
+                                                            category_type='recipe')
     return render(
         request,
         'recipe_dashboard.html',
@@ -144,7 +167,8 @@ def recipeDashboard(request):
             'recipies': recipies,
             'many_companies': many_companies,
             'company_details': company_details,
-            'company_name': company_name
+            'company_name': company_name,
+            'recipe_categories': recipe_categories
         }
     )
 
@@ -166,7 +190,7 @@ def handleRecipes(request):
                 check_recipe = RecipesModel.objects.get(recipe_user=str(request.user),
                                                         recipe_name=form.cleaned_data['recipe_name'],
                                                         company_name=company_name)
-                form = RecipeForm()
+                form = RecipeForm(request=request)
                 return render(
                     request,
                     'add_recipe.html',
@@ -952,5 +976,132 @@ def edit_storage_area(request, storage_area_id):
                 'company_name': company_name,
                 'storage_area': storage_area,
                 'form': form
+            }
+        )
+
+
+@login_required(login_url='/login')
+def ingredient_images(request, ing_id):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session.get('company_name')
+    ingredient_detail = Ingredients.objects.get(id=ing_id)
+    if request.method == 'POST':
+        image = request.FILES.get('ingredient_image')
+        ingredient_image = IngredientImages.objects.create(ingredient_image=image)
+        ingredient_image.save()
+        ingredient_detail.ingredient_images.add(ingredient_image)
+        if 'back-to-ingredients' in request.POST:
+            return redirect('/recipe/uploadimage/' + str(ing_id))
+        if 'back-to-dashboard' in request.POST:
+            return redirect('/recipe/page')
+    else:
+        return render(
+            request,
+            'ingredient_images.html',
+            {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'many_companies': many_companies,
+                'company_details': company_details,
+                'company_name': company_name,
+                'ingredient_images': ingredient_detail.ingredient_images.all(),
+            }
+        )
+
+
+@login_required(login_url='/login')
+def delete_ingredient_image(request, img_id):
+    ing_image = IngredientImages.objects.get(id=img_id)
+    print(ing_image.ingredient_image)
+    ing_image.delete()
+    return redirect('/recipe/page')
+
+
+@login_required(login_url='/login')
+def replace_ingredient(request, ing_id):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session.get('company_name')
+    ingredient = Ingredients.objects.get(id=ing_id)
+    recipes = RecipesModel.objects.filter(recipe_user=request.user.username, company_name=company_name,
+                                          other_ing_data__ing_name=ingredient.name)
+    ingredient_categories = IngredientCategories.objects.filter(user=request.user, company_name=company_name,
+                                                                category_type='ingredient')
+    ingredient_list = Ingredients.objects.filter(username=request.user.username, company_name=company_name)
+    if recipes.count() == 0:
+        has_recipe = False
+    else:
+        has_recipe = True
+    return render(
+        request,
+        'replace_ingredient.html',
+        {
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'many_companies': many_companies,
+            'company_details': company_details,
+            'company_name': company_name,
+            'ingredient_list': ingredient_list,
+            'has_recipe': has_recipe,
+            'ingredient_categories': ingredient_categories,
+            'ingredient': ingredient
+        }
+    )
+
+
+@login_required(login_url='/login')
+def confirm_replace(request, from_id, to_id):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session.get('company_name')
+    from_ingredient = Ingredients.objects.get(id=from_id)
+    recipes = RecipesModel.objects.filter(recipe_user=request.user.username, company_name=company_name,
+                                          other_ing_data__ing_name=from_ingredient.name)
+    to_ingredient = Ingredients.objects.get(id=to_id)
+
+    if request.method == 'POST':
+        for each_ing in request.POST.getlist('replaceIng'):
+            recipe = RecipesModel.objects.get(recipe_user=request.user.username, company_name=company_name,
+                                              recipe_name=each_ing)
+            for each in recipe.other_ing_data.all():
+                each.ing_name = to_ingredient.name
+                each.save()
+        return redirect('/recipe/ingridientdetails/'+str(from_id))
+    else:
+        for each in recipes.all():
+            print(each.recipe_name)
+            '''for i in each.other_ing_data.all():
+                print(i.ing_name)'''
+        return render(
+            request,
+            'confirm_ingredient_replacement.html',
+            {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'many_companies': many_companies,
+                'company_details': company_details,
+                'company_name': company_name,
+                'recipes': recipes.all(),
+                'from_ingredient': from_ingredient,
+                'to_ingredient': to_ingredient
             }
         )

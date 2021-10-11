@@ -273,10 +273,9 @@
                 <div class="form-group">
                   <label>Filter By Category</label>
                   <select id="recipe-filter-category" class="form-control select2bs4" style="width: 100%;">
-                    <option value="Food">Food</option>
-                    <option value="Labour">Labor</option>
-                    <option value="Packaging">Packaging</option>
-                      <option value="UnCategorized">UnCategorized</option>
+                    {% for recipe_category in recipe_categories %}
+                        <option value="{{ recipe_category.category }}">{{ recipe_category.category }}</option>
+                    {% endfor %}
                   </select>
                 </div>
               </div>

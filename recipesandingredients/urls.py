@@ -1,4 +1,6 @@
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
@@ -24,5 +26,12 @@ urlpatterns = [
     path('delete-cat/<int:cat_id>', views.delete_category),
     path('handle_measurements', views.handle_measurement),
     path('storagearea/new', views.crate_storage_area, name='create_storage'),
-    path('storagearea/edit/<int:storage_area_id>', views.edit_storage_area)
+    path('storagearea/edit/<int:storage_area_id>', views.edit_storage_area),
+    path('uploadimage/<int:ing_id>', views.ingredient_images),
+    path('deleteimage/<int:img_id>', views.delete_ingredient_image),
+    path('replaceingredients/<int:ing_id>', views.replace_ingredient),
+    path('confirm_replace/<int:from_id>/<int:to_id>', views.confirm_replace)
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
