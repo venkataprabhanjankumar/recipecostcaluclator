@@ -8,7 +8,7 @@ $(function (){
     })
     $.post('/recipe/handle_measurements',data,function (result){
         console.log(result)
-        document.getElementById("nutrient_database_search_results").innerHTML = null
+        document.getElementById("nutrient_database_search_results").innerHTML = ''
         $("#cached_usda_item_name").val(selected_food)
         $("#nutri-data-link-value").val(selected_food)
         $("#cached_usda_item_name").attr("readonly","")

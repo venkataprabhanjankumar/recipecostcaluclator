@@ -249,7 +249,7 @@ class NutritionDetails(models.Model):
     weight_validation = RegexValidator(regex=r'\d{1,9}(kg|lb)',
                                        message='exmaple of valid weight be 240g or 240kg or 240lb')
     range_validator = MinValueValidator(limit_value=0, message='Must be greater than or equal to 0')
-    weight = models.FloatField(validators=[weight_validation, range_validator])
+    weight = models.CharField(validators=[weight_validation], max_length=225)
     calories = models.FloatField(validators=[range_validator])
     total_fat = models.FloatField(validators=[range_validator])
     saturated_fat = models.FloatField(validators=[range_validator])
@@ -259,6 +259,7 @@ class NutritionDetails(models.Model):
     total_carbohydrates = models.FloatField(validators=[range_validator])
     dietary_fiber = models.FloatField(validators=[range_validator])
     sugar = models.FloatField(validators=[range_validator])
+    protein = models.FloatField(validators=[range_validator])
     vitamin_a = models.FloatField(validators=[range_validator])
     vitamin_c = models.FloatField(validators=[range_validator])
     calcium = models.FloatField(validators=[range_validator])

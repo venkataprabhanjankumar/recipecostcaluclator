@@ -20,8 +20,9 @@
     <script src="{% static 'js/handle_measurments.js' %}"></script>
     <script src="{% static 'js/handle_nutritions.js' %}"></script>
     <script src="{% static 'js/company_options.js' %}"></script>
-    <script src="{% static 'js/update_nutritions.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/ingridents_filter.js' %}"></script>
+    {% block script %}
+    {% endblock %}
 </head>
 <body class="hold-transition sidebar-mini">
 {% block body %}
@@ -168,6 +169,10 @@
                 <br/>
                 <li class="nav-item">
                     <a href="/recipe/replaceingredients/{{ ingredient.id }}"><i class="fa fa-random" aria-hidden="true"></i> Replace Ingredient </a>
+                </li>
+                <br/>
+                <li class="nav-item">
+                    <a href="/recipe/edit_nutrition_details/{{ ingredient.id }}"><i class="fa fa-edit" aria-hidden="true"></i> Edit Nutrition Details</a>
                 </li>
                 <br/>
                 <li class="nav-item">

@@ -1,4 +1,9 @@
 {% extends 'each_ingridient_base_page.html' %}
+{% load static %}
+{% load i18n %}
+{% block script %}
+    <script src="{% static 'js/update_nutritions.js' %}"></script>
+{% endblock %}
 {% block content %}
       <div class="modal-content" id="nut-loading" style="display: none">
           <div class="modal-header">

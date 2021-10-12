@@ -11,9 +11,9 @@ import csv
 from recipeapp.models import UserModel
 from company.models import Company
 
-from .forms import IngredientsForm, RecipeForm, SuppliersForm, UpdateSupplier, StorageAreaForm
+from .forms import IngredientsForm, RecipeForm, SuppliersForm, UpdateSupplier, StorageAreaForm, NutritionDetailsForm
 from .models import Ingredients, RecipesModel, IngredientData, Suppliers, IngredientCategories, StorageAreas, \
-    IngredientImages
+    IngredientImages, NutritionDetails
 
 
 @login_required(login_url='/login')
@@ -28,7 +28,6 @@ def handleIngredients(request):
     if request.method == 'POST':
         print(request.POST)
         form = IngredientsForm(request=request, data=request.POST)
-        print(form)
         print(form.is_valid())
         ingMeasurementsData = request.POST.get('ingMeasurementsData')
         print(ingMeasurementsData)
@@ -484,27 +483,29 @@ def edit_ingredient(request, ing_id):
                 indredients.toMeasurementData = todata[:-1]
                 indredients.save()
                 print("Ingredients Saved")
-        return render(
-            request,
-            'edit_ingridient.html',
-            {
-                'ingredient': ingredient,
-                'form': form,
-                'has_major_Allergens': ingredient.hasMajorAllergens,
-                'has_measurements': has_measurments,
-                'measurements': measurements,
-                'allergens': allergens,
-                'allergens_list': allergens_list,
-                'username': user.username,
-                'email': user.email,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'many_companies': many_companies,
-                'company_details': company_details,
-                'company_name': company_name,
-                'ing_val': ing_val
-            }
-        )
+            return redirect('/recipe/editing/'+str(ing_id))
+        else:
+            return render(
+                request,
+                'edit_ingridient.html',
+                {
+                    'ingredient': ingredient,
+                    'form': form,
+                    'has_major_Allergens': ingredient.hasMajorAllergens,
+                    'has_measurements': has_measurments,
+                    'measurements': measurements,
+                    'allergens': allergens,
+                    'allergens_list': allergens_list,
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'many_companies': many_companies,
+                    'company_details': company_details,
+                    'company_name': company_name,
+                    'ing_val': ing_val
+                }
+            )
     else:
         form = IngredientsForm(instance=ingredient, request=request)
         print(ingredient.hasMajorAllergens)
@@ -835,6 +836,8 @@ def delete_category(request, cat_id):
 @login_required(login_url='/login')
 def handle_measurement(request):
     print(request.POST)
+    units = ['oz', 'lb', 'Kg', 'T', 'g', 'pinch', 'tsp', 'tbsp', 'floz', 'dL', 'cup', 'pt', 'ml', 'qt', 'L', 'gal',
+             'kl', 'each', 'dozen', 'hundred', 'thousand', 'million', 's', 'min', 'hr']
     with open('./measurments/measurements.csv', 'r') as csv_file:
         csv_reader = csv.reader(csv_file)
         fields = next(csv_reader)
@@ -842,11 +845,14 @@ def handle_measurement(request):
         for row in csv_reader:
             if row[1] == request.POST.get('selected_food'):
                 if row[7] != 'Quantity not specified':
-                    for each_qty in Ingredients.qtyUnits_Choices:
-                        for qty in each_qty[1:2]:
-                            for each in qty:
-                                if each[0][each[0].index("(") + 1:each[0].index(")")] == row[7].split(' ')[-1]:
-                                    data.append([row[7], row[8], each[0]])
+                    if row[7].split(' ')[-1] in units and len(row[7].split(' ')) == 2:
+                        for each_qty in Ingredients.qtyUnits_Choices:
+                            for qty in each_qty[1:2]:
+                                for each in qty:
+                                    if each[0][each[0].index("(") + 1:each[0].index(")")] == row[7].split(' ')[-1]:
+                                        data.append([row[7], row[8], each[0]])
+                    else:
+                        data.append(['1 each ' + row[7], row[8], 'Each (each)'])
         print(data)
     return HttpResponse({json.dumps({'measurement_units': data})}, content_type='application/json')
 
@@ -1012,6 +1018,7 @@ def ingredient_images(request, ing_id):
                 'company_details': company_details,
                 'company_name': company_name,
                 'ingredient_images': ingredient_detail.ingredient_images.all(),
+                'ingredient': ingredient_detail
             }
         )
 
@@ -1083,7 +1090,7 @@ def confirm_replace(request, from_id, to_id):
             for each in recipe.other_ing_data.all():
                 each.ing_name = to_ingredient.name
                 each.save()
-        return redirect('/recipe/ingridientdetails/'+str(from_id))
+        return redirect('/recipe/ingridientdetails/' + str(from_id))
     else:
         for each in recipes.all():
             print(each.recipe_name)
@@ -1102,6 +1109,90 @@ def confirm_replace(request, from_id, to_id):
                 'company_name': company_name,
                 'recipes': recipes.all(),
                 'from_ingredient': from_ingredient,
-                'to_ingredient': to_ingredient
+                'to_ingredient': to_ingredient,
+                'ingredient': from_ingredient
+            }
+        )
+
+
+@login_required(login_url='/login')
+def edit_nutrition_details(request, ing_id):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session.get('company_name')
+    ingredient = Ingredients.objects.get(id=ing_id)
+    try:
+        nutrition_details = NutritionDetails.objects.get(user=request.user.username, company_name=company_name,
+                                                         ingredient=ingredient.name)
+        form = NutritionDetailsForm(instance=nutrition_details)
+    except NutritionDetails.DoesNotExist:
+        form = NutritionDetailsForm()
+    if request.method == 'POST':
+        try:
+            nutrition_details = NutritionDetails.objects.get(user=request.user.username, company_name=company_name,
+                                                             ingredient=ingredient.name)
+            form = NutritionDetailsForm(instance=nutrition_details, data=request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect('/recipe/edit_nutrition_details/' + str(ing_id))
+            else:
+                return render(
+                    request,
+                    'edit_ingredient_details.html',
+                    {
+                        'username': user.username,
+                        'email': user.email,
+                        'first_name': user.first_name,
+                        'last_name': user.last_name,
+                        'many_companies': many_companies,
+                        'company_details': company_details,
+                        'company_name': company_name,
+                        'ingredient': ingredient,
+                        'form': form
+                    }
+                )
+        except NutritionDetails.DoesNotExist:
+            form = NutritionDetailsForm(request.POST)
+            if form.is_valid():
+                nutrition = form.save(commit=False)
+                nutrition.user = request.user.username
+                nutrition.company_name = company_name
+                nutrition.ingredient = ingredient.name
+                nutrition.save()
+                return redirect('/recipe/edit_nutrition_details/' + str(ing_id))
+            else:
+                return render(
+                    request,
+                    'edit_ingredient_details.html',
+                    {
+                        'username': user.username,
+                        'email': user.email,
+                        'first_name': user.first_name,
+                        'last_name': user.last_name,
+                        'many_companies': many_companies,
+                        'company_details': company_details,
+                        'company_name': company_name,
+                        'ingredient': ingredient,
+                        'form': form
+                    }
+                )
+    else:
+        return render(
+            request,
+            'edit_ingredient_details.html',
+            {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'many_companies': many_companies,
+                'company_details': company_details,
+                'company_name': company_name,
+                'ingredient': ingredient,
+                'form': form
             }
         )

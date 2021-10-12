@@ -30,7 +30,8 @@ urlpatterns = [
     path('uploadimage/<int:ing_id>', views.ingredient_images),
     path('deleteimage/<int:img_id>', views.delete_ingredient_image),
     path('replaceingredients/<int:ing_id>', views.replace_ingredient),
-    path('confirm_replace/<int:from_id>/<int:to_id>', views.confirm_replace)
+    path('confirm_replace/<int:from_id>/<int:to_id>', views.confirm_replace),
+    path('edit_nutrition_details/<int:ing_id>', views.edit_nutrition_details)
 ]
 
 if settings.DEBUG:

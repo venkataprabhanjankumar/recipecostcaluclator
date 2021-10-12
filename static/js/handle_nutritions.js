@@ -97,14 +97,14 @@ $(function (){
                             "<div class='mb10'>"+
                                 result.measurement_units[i][0] +"<b>≈</b>"+ result.measurement_units[i][1]+
                                 "<input type='hidden' name='units-hidden' value='"+result.measurement_units[i][2]+"'>"+
-                                "<button id='add-measurment' type='button'><i class=\"fa fa-plus\" aria-hidden=\"true\"></i></button>"+
+                                "<button class='add-measurment-button-nutri' type='button'><i class=\"fa fa-plus\" aria-hidden=\"true\"></i></button>"+
                             "</div>"
                         );
                         div.append(unitsdiv)
                     }
                     $("#conversion_help").append(div)
 
-                    $("#add-measurment").bind('click',function (){
+                    $(".add-measurment-button-nutri").bind('click',function (){
                         console.log($(this).closest("div").text().split("≈"))
                         console.log($(this).closest("div").find('input[type=hidden]').val())
                         var fromto = $(this).closest("div").text().split("≈")
@@ -185,12 +185,13 @@ $(function (){
                         $("#cached_usda_item_name").removeAttr("readonly")
                         delete $.ajaxSettings.headers["X-CSRFToken"]
                         document.getElementById("display-units-msg").innerText = ''
-                        document.getElementById('display-units-block').innerHTML = ''
+                        document.getElementById('display-units-block').innerText = ''
                         document.getElementById('display-selected-nutrition').innerText = ''
                         $("#display-selected-nutrition").css({'display':'none'})
                         $("#nutri-link-btn").css({'display':'block'})
                         $("#nutri-link-btn-change").css({'display':'none'})
                         $("#nutri-data-link-value").val('')
+                        $("#conversion_help").css({'display':'none'})
                     });
                 })
             });
