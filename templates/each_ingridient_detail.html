@@ -1,5 +1,5 @@
 {% extends 'each_ingridient_base_page.html' %}
-
+{% load get_dict_values %}
 {% block content %}
     <div class="col-md-12">
         <h3 class="h3-heading" id="page-heading">{{ ingredient.name }}</h3>
@@ -20,10 +20,10 @@
 
       <tbody>
         <tr>
-            <td><a href="/recipe/ingridientdetails/{{ ingrideient.id }}">{{ ingredient.name }}</a></td>
+            <td>{{ ingredient.suppliers }}</td>
             <td>{{ ingredient.orderCode }}</td>
             <td>{{ ingredient.brand }}</td>
-            <td>{{ ingredient.packSize }}/{{ ingredient.caseQuantity }}cup</td>
+            <td>{{ ingredient.packSize }}/{{ ingredient.caseQuantity }}</td>
             <td>${{ ingredient.price }}</td>
             <td class="actions">
               <div class="btn-group btn-group-xs">
@@ -34,6 +34,26 @@
         </tr>
   </tbody>
   </table>
+            <div class="row">
+      <div class="col-lg-6">
+        <div class="panel panel-primary">
+          <div class="panel-heading">
+            Ingredient Details
+          </div>
+          <div class="panel-body">
+            <dl class="dl-horizontal">
+
+
+              <dt>Country of Origin:</dt><dd>{{ ingredient.countryOfOrigin }}</dd>
+              <dt>Category:</dt><dd>{{ ingredient.category }}</dd>
+              <dt>Is Added Sugar:</dt><dd>{{ ingredient.sugarAdded }}</dd>
+                <dt>Storage Areas:</dt><dd>{{ ingredient.storageAreas }}</dd>
+                <dt>Par Level:</dt><dd>{{ ingredient.parLevel }}</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
         </div>
     </div>
 {% endblock %}

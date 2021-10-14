@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
     {% load static %}
+    {% load get_dict_values %}
+    {% load division %}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Recipe Cost Calculator</title>
@@ -304,7 +306,8 @@
                       <th>Name</th>
                       <th>Purchase Amount</th>
                       <th>Price</th>
-                        <th>Category</th>
+                        <th>Price/unit</th>
+                        <th style="display: none">Category</th>
                         <th>Actions</th>
                     </tr>
                   </thead>
@@ -315,12 +318,15 @@
                                 <a href="/recipe/ingridientdetails/{{ ingrideient.id }}">{{ ingrideient.name }}</a>
                             </td>
                             <td>
+                                {{ ingrideient.caseQuantity }}/{{ ingrideient.packSize }} {{ qty_units | get_item:ingrideient.qtyUnits }}
+                            </td>
+                              <td>
                                 {{ ingrideient.price }}
                             </td>
-                            <td>
-                                {{ ingrideient.caseQuantity }}/{{ ingrideient.packSize }}
-                            </td>
-                            <td id="ingrident-category-item">
+                              <td>
+                                  {{ ingrideient.price | division:ingrideient.caseQuantity | multi:ingrideient.packSize }}
+                              </td>
+                            <td id="ingrident-category-item" style="display: none">
                                 {{ ingrideient.category }}
                             </td>
                             <td>

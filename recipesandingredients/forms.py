@@ -28,7 +28,7 @@ class IngredientsForm(forms.ModelForm):
                 ("", "------------"),
                 ("Add Supplier", "Add Supplier")
             ]
-        customer_categeroy_choices = [('', '-----------')]
+        customer_categeroy_choices = [('', '-----------'), ("Add Category", "Add Category")]
         storage_choices = [('', '-----------')]
         user_categories = IngredientCategories.objects.filter(user=self.request.user,
                                                               company_name=self.request.session['company_name'],
@@ -39,9 +39,9 @@ class IngredientsForm(forms.ModelForm):
                                                      company_name=self.request.session['company_name'])
         for storage in storage_filter:
             storage_choices.append((storage.name, storage.name))
-        self.fields['suppliers'] = forms.ChoiceField(choices=self.Supplier_Choice, required=False)
+        self.fields['suppliers'] = forms.ChoiceField(choices=self.Supplier_Choice, required=False, label='Supplier')
         self.fields['category'] = forms.ChoiceField(choices=customer_categeroy_choices, required=False)
-        self.fields['storageAreas'] = forms.ChoiceField(choices=storage_choices, required=False)
+        self.fields['storageAreas'] = forms.ChoiceField(choices=storage_choices, required=False, label='Storage Area')
 
     Alleregen_Choices = [
         ("Cerly", "Cerly"), ("Shellfish", "Shellfish"), ("Eggs", "Eggs"), ("Soy", "Soy"),

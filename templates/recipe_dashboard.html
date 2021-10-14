@@ -296,8 +296,8 @@
                   <thead>
                     <tr>
                       <th>Name</th>
-                      <th>Purchase Amount</th>
-                        <th>Category</th>
+                      <th>Yield</th>
+                        <th style="display: none">Category</th>
                         <th>Actions</th>
                     </tr>
                   </thead>
@@ -310,7 +310,7 @@
                             <td>
                                 {{ recipie.recipe_yield_count }} {{ recipie.yield_units }}
                             </td>
-                            <td>
+                            <td style="display: none">
                                 {{ recipie.recipe_category }}
                             </td>
                             <td>

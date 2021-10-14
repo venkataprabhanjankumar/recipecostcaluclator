@@ -14,6 +14,7 @@ from company.models import Company
 from .forms import IngredientsForm, RecipeForm, SuppliersForm, UpdateSupplier, StorageAreaForm, NutritionDetailsForm
 from .models import Ingredients, RecipesModel, IngredientData, Suppliers, IngredientCategories, StorageAreas, \
     IngredientImages, NutritionDetails
+from .units import qty_units
 
 
 @login_required(login_url='/login')
@@ -66,6 +67,12 @@ def handleIngredients(request):
                     Suppliers.objects.create(supplier_name=request.POST.get('customsupplier'),
                                              user=request.user.username, company_name=company_name).save()
                     print("Saved Suppliers")
+                if form.cleaned_data['category'] == 'Add Category':
+                    indredients.category = request.POST.get('customcategory')
+                    indredients.save()
+                    IngredientCategories.objects.create(user=request.user.username, company_name=company_name,
+                                                        category=request.POST.get('customcategory'),
+                                                        category_type='ingredient').save()
                 if ingMeasurementsData == '':
                     pass
                 else:
@@ -138,7 +145,8 @@ def ingredientsDashboard(request):
             'many_companies': many_companies,
             'company_details': company_details,
             'company_name': company_name,
-            'ingredient_categories': ingredient_categories
+            'ingredient_categories': ingredient_categories,
+            'qty_units': qty_units
         }
     )
 
@@ -462,6 +470,12 @@ def edit_ingredient(request, ing_id):
                 form = IngredientsForm(instance=ingredient, request=request)
                 Suppliers.objects.create(supplier_name=request.POST.get('customsupplier'),
                                          user=request.user.username, company_name=company_name).save()
+            if form.cleaned_data['category'] == 'Add Category':
+                indredients.category = request.POST.get('customcategory')
+                indredients.save()
+                IngredientCategories.objects.create(user=request.user.username, company_name=company_name,
+                                                    category=request.POST.get('customcategory'),
+                                                    category_type='ingredient').save()
             ingMeasurementsData = request.POST.get('ingMeasurementsData')
             if ingMeasurementsData == '':
                 print("delete all")
