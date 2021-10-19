@@ -11,9 +11,10 @@ import csv
 from recipeapp.models import UserModel
 from company.models import Company
 
-from .forms import IngredientsForm, RecipeForm, SuppliersForm, UpdateSupplier, StorageAreaForm, NutritionDetailsForm
+from .forms import IngredientsForm, RecipeForm, SuppliersForm, UpdateSupplier, StorageAreaForm, NutritionDetailsForm, \
+    RecipePreparationInstructions, Ingredient_SupplierForm, UpdateIngredientSupplierForm
 from .models import Ingredients, RecipesModel, IngredientData, Suppliers, IngredientCategories, StorageAreas, \
-    IngredientImages, NutritionDetails
+    IngredientImages, NutritionDetails, IngredientSuppliers
 from .units import qty_units
 
 
@@ -66,7 +67,21 @@ def handleIngredients(request):
                     indredients.save()
                     Suppliers.objects.create(supplier_name=request.POST.get('customsupplier'),
                                              user=request.user.username, company_name=company_name).save()
-                    print("Saved Suppliers")
+                    IngredientSuppliers.objects.create(ingredient_relation=indredients,
+                                                       supplier=request.POST.get('customsupplier'),
+                                                       price=form.cleaned_data['price'],
+                                                       order_code=form.cleaned_data['orderCode'],
+                                                       caseQuantity=form.cleaned_data['caseQuantity'],
+                                                       packSize=form.cleaned_data['packSize'],
+                                                       qtyUnits=form.cleaned_data['qtyUnits'], preferred=True).save()
+                if form.cleaned_data['suppliers'] != 'Add Supplier' and form.cleaned_data['suppliers'] != '':
+                    IngredientSuppliers.objects.create(ingredient_relation=indredients,
+                                                       supplier=form.cleaned_data['suppliers'],
+                                                       price=form.cleaned_data['price'],
+                                                       order_code=form.cleaned_data['orderCode'],
+                                                       caseQuantity=form.cleaned_data['caseQuantity'],
+                                                       packSize=form.cleaned_data['packSize'],
+                                                       qtyUnits=form.cleaned_data['qtyUnits'], preferred=True).save()
                 if form.cleaned_data['category'] == 'Add Category':
                     indredients.category = request.POST.get('customcategory')
                     indredients.save()
@@ -270,7 +285,7 @@ def recipe_detail(request, ing_id):
     else:
         many_companies = False
     company_name = request.session['company_name']
-    recipe = RecipesModel.objects.get(recipe_user=str(request.user), id=ing_id)
+    recipe = RecipesModel.objects.get(id=ing_id)
     return render(
         request,
         'each_recipe_detail.html',
@@ -296,7 +311,7 @@ def edit_recipe(request, ing_id):
     else:
         many_companies = False
     company_name = request.session['company_name']
-    recipe = RecipesModel.objects.get(recipe_user=str(request.user), id=ing_id)
+    recipe = RecipesModel.objects.get(id=ing_id)
     ingredients = Ingredients.objects.filter(username=request.user, company_name=company_name)
     other_ing = []
     unit_options = ['Milliliter (ml)', 'US Teaspoon (tsp) (4.93 ml)', 'US Tablespoon (tbsp) (14.79 ml)',
@@ -403,7 +418,10 @@ def ingredient_details(request, ing_id):
     else:
         many_companies = False
     company_name = request.session['company_name']
-    ingredient = Ingredients.objects.get(username=request.user, id=ing_id)
+    ingredient = Ingredients.objects.get(id=ing_id)
+    ingredient_recipes = RecipesModel.objects.filter(other_ing_data__ing_name=ingredient.name,
+                                                     company_name=company_name, recipe_user=request.user.username)
+    ingredient_suppliers = IngredientSuppliers.objects.filter(ingredient_relation=ingredient)
     return render(
         request,
         'each_ingridient_detail.html',
@@ -415,7 +433,12 @@ def ingredient_details(request, ing_id):
             'last_name': user.last_name,
             'many_companies': many_companies,
             'company_details': company_details,
-            'company_name': company_name
+            'company_name': company_name,
+            'ingredient_suppliers': ingredient_suppliers,
+            'qty_units': qty_units,
+            'ingredient_recipes': ingredient_recipes,
+            'has_major_allergens': ingredient.hasMajorAllergens,
+            'major_allergens': ingredient.majorAllergens
         }
     )
 
@@ -429,7 +452,7 @@ def edit_ingredient(request, ing_id):
         many_companies = True
     else:
         many_companies = False
-    ingredient = Ingredients.objects.get(username=request.user, id=ing_id)
+    ingredient = Ingredients.objects.get(id=ing_id)
     allergens_list = ['Cerly', 'Eggs', 'Fish', 'Milk', 'Lupin', 'Molluscs', 'Mustard', 'Peanuts', 'Sesame', 'Shellfish',
                       'Soy', 'Sulfites', 'Tree Nuts', 'Wheat']
     if ingredient.hasMajorAllergens:
@@ -467,9 +490,15 @@ def edit_ingredient(request, ing_id):
             if form.cleaned_data['suppliers'] == 'Add Supplier':
                 indredients.suppliers = request.POST.get('customsupplier')
                 indredients.save()
-                form = IngredientsForm(instance=ingredient, request=request)
                 Suppliers.objects.create(supplier_name=request.POST.get('customsupplier'),
                                          user=request.user.username, company_name=company_name).save()
+                IngredientSuppliers.objects.create(ingredient_relation=indredients,
+                                                   supplier=request.POST.get('customsupplier'),
+                                                   price=form.cleaned_data['price'],
+                                                   order_code=form.cleaned_data['orderCode'],
+                                                   caseQuantity=form.cleaned_data['caseQuantity'],
+                                                   packSize=form.cleaned_data['packSize'],
+                                                   qtyUnits=form.cleaned_data['qtyUnits'], preferred=True).save()
             if form.cleaned_data['category'] == 'Add Category':
                 indredients.category = request.POST.get('customcategory')
                 indredients.save()
@@ -478,7 +507,6 @@ def edit_ingredient(request, ing_id):
                                                     category_type='ingredient').save()
             ingMeasurementsData = request.POST.get('ingMeasurementsData')
             if ingMeasurementsData == '':
-                print("delete all")
                 indredients.fromMeasurementUnits = []
                 indredients.fromMeasurementData = []
                 indredients.toMeasurementUnits = []
@@ -497,7 +525,7 @@ def edit_ingredient(request, ing_id):
                 indredients.toMeasurementData = todata[:-1]
                 indredients.save()
                 print("Ingredients Saved")
-            return redirect('/recipe/editing/'+str(ing_id))
+            return redirect('/recipe/editing/' + str(ing_id))
         else:
             return render(
                 request,
@@ -548,14 +576,14 @@ def edit_ingredient(request, ing_id):
 
 @login_required(login_url='/login')
 def delete_ingredient(request, ing_id):
-    ingredient = Ingredients.objects.get(username=request.user, id=ing_id)
+    ingredient = Ingredients.objects.get(id=ing_id)
     ingredient.delete()
     return redirect('/recipe/page')
 
 
 @login_required(login_url='/login')
 def delete_recipe(request, rec_id):
-    recipe = RecipesModel.objects.get(recipe_user=request.user, id=rec_id)
+    recipe = RecipesModel.objects.get(id=rec_id)
     recipe.delete()
     return redirect('/recipe/recipelist')
 
@@ -1210,3 +1238,238 @@ def edit_nutrition_details(request, ing_id):
                 'form': form
             }
         )
+
+
+@login_required(login_url='/login')
+def recipe_preparation_instructions(request, recipe_id):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session['company_name']
+    recipe = RecipesModel.objects.get(id=recipe_id)
+    if request.method == 'POST':
+        form = RecipePreparationInstructions(instance=recipe, data=request.POST)
+        if form.is_valid():
+            form.save()
+            if 'backtorecipedashboard' in request.POST:
+                return redirect('/recipe/recipelist')
+            if 'backtorecipes' in request.POST:
+                return redirect('/recipe/preparation/' + str(recipe_id))
+        else:
+            return render(
+                request,
+                'recipe_preparation_instructions.html',
+                {
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'recipe': recipe,
+                    'many_companies': many_companies,
+                    'company_details': company_details,
+                    'company_name': company_name,
+                    'form': form
+                }
+            )
+    else:
+        form = RecipePreparationInstructions(instance=recipe)
+        return render(
+            request,
+            'recipe_preparation_instructions.html',
+            {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'recipe': recipe,
+                'many_companies': many_companies,
+                'company_details': company_details,
+                'company_name': company_name,
+                'form': form
+            }
+        )
+
+
+@login_required(login_url='/login')
+def add_ingredient_supplier(request, ing_id):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session['company_name']
+    ingredient = Ingredients.objects.get(id=ing_id)
+    ingredient_suppliers = IngredientSuppliers.objects.filter(ingredient_relation=ingredient)
+    ingredient_recipes = RecipesModel.objects.filter(other_ing_data__ing_name=ingredient.name,
+                                                     company_name=company_name, recipe_user=request.user.username)
+    if request.method == 'POST':
+        form = Ingredient_SupplierForm(request=request, data=request.POST)
+        if form.is_valid():
+            nutri_instance = form.save(commit=False)
+            nutri_instance.ingredient_relation = ingredient
+            if request.POST.get('supplier') == 'Add Supplier':
+                nutri_instance.supplier = request.POST.get('customsupplier')
+                nutri_instance.save()
+                Suppliers.objects.create(user=request.user.username, company_name=company_name,
+                                         supplier_name=request.POST.get('customsupplier')).save()
+            else:
+                nutri_instance.save()
+            return redirect('/recipe/ingridientdetails/' + str(ing_id))
+        else:
+            return render(
+                request,
+                'each_ingridient_detail.html',
+                {
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'many_companies': many_companies,
+                    'company_details': company_details,
+                    'company_name': company_name,
+                    'ingredient': ingredient,
+                    'form': form,
+                    'ingredient_suppliers': ingredient_suppliers,
+                    'qty_units': qty_units,
+                    'ingredient_recipes': ingredient_recipes,
+                    'has_major_allergens': ingredient.hasMajorAllergens,
+                    'major_allergens': ingredient.majorAllergens
+                }
+            )
+    else:
+        form = Ingredient_SupplierForm(request=request)
+        return render(
+            request,
+            'each_ingridient_detail.html',
+            {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'many_companies': many_companies,
+                'company_details': company_details,
+                'company_name': company_name,
+                'ingredient': ingredient,
+                'form': form,
+                'ingredient_suppliers': ingredient_suppliers,
+                'qty_units': qty_units,
+                'ingredient_recipes': ingredient_recipes,
+                'has_major_allergens': ingredient.hasMajorAllergens,
+                'major_allergens': ingredient.majorAllergens
+            }
+        )
+
+
+@login_required(login_url='/login')
+def edit_ingredient_suppliers(request, ing_id):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session['company_name']
+    ingredient = Ingredients.objects.get(id=ing_id)
+    ingredient_suppliers = IngredientSuppliers.objects.filter(ingredient_relation=ingredient)
+    return render(
+        request,
+        'edit_ingredient_suppliers.html',
+        {
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'many_companies': many_companies,
+            'company_details': company_details,
+            'company_name': company_name,
+            'ingredient': ingredient,
+            'ingredient_suppliers': ingredient_suppliers,
+            'qty_units': qty_units
+        }
+    )
+
+
+@login_required(login_url='/login')
+def edit_each_ingredient_supplier(request, ing_id, ing_supplier_id):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session['company_name']
+    ingredient = Ingredients.objects.get(id=ing_id)
+    ingredient_supplier = IngredientSuppliers.objects.get(id=ing_supplier_id)
+    ingredient_suppliers = IngredientSuppliers.objects.filter(ingredient_relation=ingredient)
+    form = UpdateIngredientSupplierForm(instance=ingredient_supplier, request=request)
+    if request.method == 'POST':
+        form = UpdateIngredientSupplierForm(instance=ingredient_supplier, request=request, data=request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('/recipe/edit_ingredient_suppliers/' + str(ing_id))
+        else:
+            return render(
+                request,
+                'edit_ingredient_suppliers.html',
+                {
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'many_companies': many_companies,
+                    'company_details': company_details,
+                    'company_name': company_name,
+                    'ingredient': ingredient,
+                    'form': form,
+                    'ingredient_suppliers': ingredient_suppliers,
+                    'qty_units': qty_units
+                }
+            )
+    else:
+        return render(
+            request,
+            'edit_ingredient_suppliers.html',
+            {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'many_companies': many_companies,
+                'company_details': company_details,
+                'company_name': company_name,
+                'ingredient': ingredient,
+                'form': form,
+                'ingredient_suppliers': ingredient_suppliers,
+                'qty_units': qty_units
+            }
+        )
+
+
+@login_required(login_url='/login')
+def delete_each_ingredient_supplier(request, ing_id, ing_supplier_id):
+    IngredientSuppliers.objects.get(id=ing_supplier_id).delete()
+    return redirect('/recipe/edit_ingredient_suppliers/' + str(ing_id))
+
+
+@login_required(login_url='/login')
+def set_preferred_ingredient_supplier(request, ing_id, ing_supplier_id):
+    ingredient = Ingredients.objects.get(id=ing_id)
+    ingredient_supplier = IngredientSuppliers.objects.get(ingredient_relation=ingredient, preferred=True)
+    ingredient_supplier.preferred = False
+    ingredient_supplier.save()
+    ing_supplier = IngredientSuppliers.objects.get(id=ing_supplier_id)
+    ing_supplier.preferred = True
+    ing_supplier.save()
+    ingredient.price = ing_supplier.price
+    ingredient.caseQuantity = ing_supplier.caseQuantity
+    ingredient.packSize = ing_supplier.packSize
+    ingredient.qtyUnits = ing_supplier.qtyUnits
+    ingredient.orderCode = ing_supplier.order_code
+    ingredient.brand = ing_supplier.brand
+    ingredient.countryOfOrigin = ing_supplier.country_of_origin
+    ingredient.save()
+    return redirect('/recipe/edit_ingredient_suppliers/' + str(ing_id))

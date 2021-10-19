@@ -1,6 +1,7 @@
 from django.core.validators import RegexValidator, MinValueValidator
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
+from django_quill.fields import QuillField
 
 
 class IngredientImages(models.Model):
@@ -230,6 +231,7 @@ class RecipesModel(models.Model):
     recipe_yield_count = models.IntegerField()
     yield_units = models.CharField(max_length=225)
     other_ing_data = models.ManyToManyField(IngredientData)
+    preparation_instructions = QuillField(blank=True)
 
     class Meta:
         db_table = 'recipe_table'
@@ -266,3 +268,16 @@ class NutritionDetails(models.Model):
     iron = models.FloatField(validators=[range_validator])
     vitamin_d = models.FloatField(validators=[range_validator])
     potassium = models.FloatField(validators=[range_validator])
+
+
+class IngredientSuppliers(models.Model):
+    ingredient_relation = models.ForeignKey(Ingredients, on_delete=models.CASCADE)
+    supplier = models.CharField(max_length=225)
+    price = models.FloatField()
+    caseQuantity = models.IntegerField()
+    packSize = models.IntegerField()
+    qtyUnits = models.CharField(max_length=225, choices=Ingredients.qtyUnits_Choices)
+    order_code = models.CharField(max_length=225, blank=True, null=True)
+    brand = models.CharField(max_length=225, blank=True, null=True)
+    country_of_origin = models.CharField(max_length=225, choices=Ingredients.Country_Of_Origin, blank=True, null=True)
+    preferred = models.BooleanField(default=False)

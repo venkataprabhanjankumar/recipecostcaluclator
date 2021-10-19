@@ -1,5 +1,6 @@
 from django import forms
-from .models import Ingredients, RecipesModel, IngredientCategories, Suppliers, StorageAreas, NutritionDetails
+from .models import Ingredients, RecipesModel, IngredientCategories, Suppliers, StorageAreas, NutritionDetails, \
+    IngredientSuppliers
 
 
 class IngredientsForm(forms.ModelForm):
@@ -77,7 +78,7 @@ class RecipeForm(forms.ModelForm):
 
     class Meta:
         model = RecipesModel
-        exclude = ('other_ing_data', 'recipe_user', 'company_name')
+        exclude = ('other_ing_data', 'recipe_user', 'company_name', 'preparation_instructions')
         fields = '__all__'
 
 
@@ -118,4 +119,72 @@ class NutritionDetailsForm(forms.ModelForm):
     class Meta:
         model = NutritionDetails
         exclude = ('user', 'company_name', 'ingredient')
+        fields = '__all__'
+
+
+class RecipePreparationInstructions(forms.ModelForm):
+    class Meta:
+        model = RecipesModel
+        fields = ('preparation_instructions',)
+
+
+class Ingredient_SupplierForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        company_name = self.request.session['company_name']
+        usersup = Suppliers.objects.filter(user=self.request.user, company_name=company_name)
+        super(Ingredient_SupplierForm, self).__init__(*args, **kwargs)
+        if usersup.count() > 0:
+            supp = []
+            for sup in usersup:
+                if sup.supplier_name == '':
+                    continue
+                supp.append((sup.supplier_name, sup.supplier_name))
+            self.Supplier_Choice = [
+                ("", "------------"),
+                ("Add Supplier", "Add Supplier"),
+            ]
+            for sample in list(set(supp)):
+                self.Supplier_Choice.append(sample)
+            print(self.Supplier_Choice)
+        else:
+            self.Supplier_Choice = [
+                ("", "------------"),
+                ("Add Supplier", "Add Supplier")
+            ]
+        self.fields['supplier'] = forms.ChoiceField(choices=self.Supplier_Choice, label='Supplier')
+
+    class Meta:
+        model = IngredientSuppliers
+        exclude = ('ingredient_relation', 'preferred')
+        fields = '__all__'
+
+
+class UpdateIngredientSupplierForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        company_name = self.request.session['company_name']
+        usersup = Suppliers.objects.filter(user=self.request.user, company_name=company_name)
+        super(UpdateIngredientSupplierForm, self).__init__(*args, **kwargs)
+        if usersup.count() > 0:
+            supp = []
+            for sup in usersup:
+                if sup.supplier_name == '':
+                    continue
+                supp.append((sup.supplier_name, sup.supplier_name))
+            self.Supplier_Choice = [
+                ("", "------------"),
+            ]
+            for sample in list(set(supp)):
+                self.Supplier_Choice.append(sample)
+            print(self.Supplier_Choice)
+        else:
+            self.Supplier_Choice = [
+                ("", "------------"),
+            ]
+        self.fields['supplier'] = forms.ChoiceField(choices=self.Supplier_Choice, label='Supplier')
+
+    class Meta:
+        model = IngredientSuppliers
+        exclude = ('ingredient_relation', 'preferred')
         fields = '__all__'

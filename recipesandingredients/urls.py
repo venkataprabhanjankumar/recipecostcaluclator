@@ -31,7 +31,13 @@ urlpatterns = [
     path('deleteimage/<int:img_id>', views.delete_ingredient_image),
     path('replaceingredients/<int:ing_id>', views.replace_ingredient),
     path('confirm_replace/<int:from_id>/<int:to_id>', views.confirm_replace),
-    path('edit_nutrition_details/<int:ing_id>', views.edit_nutrition_details)
+    path('edit_nutrition_details/<int:ing_id>', views.edit_nutrition_details),
+    path('preparation/<int:recipe_id>', views.recipe_preparation_instructions),
+    path('ingridientdetails/addsupplier/<int:ing_id>', views.add_ingredient_supplier),
+    path('edit_ingredient_suppliers/<int:ing_id>', views.edit_ingredient_suppliers),
+    path('edit_ingredient_supplier/edit/<int:ing_id>/<int:ing_supplier_id>', views.edit_each_ingredient_supplier),
+    path('edit_ingredient_supplier/delete/<int:ing_id>/<int:ing_supplier_id>', views.delete_each_ingredient_supplier),
+    path('preferred/<int:ing_id>/<int:ing_supplier_id>', views.set_preferred_ingredient_supplier)
 ]
 
 if settings.DEBUG:

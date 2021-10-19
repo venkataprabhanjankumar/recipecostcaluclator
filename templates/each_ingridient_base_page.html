@@ -59,7 +59,7 @@
               <li style="background-color: #abdde5">Raw Materials</li>
               <li><a href="#" class="dropdown-item">Inventory</a></li>
               <li><a href="#" class="dropdown-item">Lot Codes </a></li>
-              <li><a href="#" class="dropdown-item">Storage Areas</a></li>
+              <li><a href="{% url 'create_storage' %}" class="dropdown-item">Storage Areas</a></li>
               <li style="background-color: #abdde5">Finished Goods</li>
               <li><a href="#" class="dropdown-item">Inventory</a></li>
               <li><a href="#" class="dropdown-item">Lot Codes </a></li>
@@ -173,6 +173,10 @@
                 <br/>
                 <li class="nav-item">
                     <a href="/recipe/edit_nutrition_details/{{ ingredient.id }}"><i class="fa fa-edit" aria-hidden="true"></i> Edit Nutrition Details</a>
+                </li>
+                <br/>
+                <li class="nav-item">
+                    <a href="/recipe/edit_ingredient_suppliers/{{ ingredient.id }}"><i class="fa fa-truck" aria-hidden="true"></i> Edit Suppliers</a>
                 </li>
                 <br/>
                 <li class="nav-item">
