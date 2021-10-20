@@ -209,7 +209,7 @@ def handleRecipes(request):
         form = RecipeForm(request=request, data=request.POST)
         if form.is_valid():
             try:
-                check_recipe = RecipesModel.objects.get(recipe_user=str(request.user),
+                check_recipe = RecipesModel.objects.get(recipe_user=request.user.username,
                                                         recipe_name=form.cleaned_data['recipe_name'],
                                                         company_name=company_name)
                 form = RecipeForm(request=request)
@@ -231,16 +231,13 @@ def handleRecipes(request):
             except RecipesModel.DoesNotExist:
                 if 'ingAmount' not in request.POST:
                     recipe = form.save(commit=False)
-                    recipe.recipe_user = str(request.user)
+                    recipe.recipe_user = request.user.username
+                    recipe.company_name = company_name
                     recipe.save()
-                    recipedetails = RecipesModel.objects.get(recipe_user=str(request.user),
-                                                             recipe_name=form.cleaned_data['recipe_name'])
-                    recipedetails.company_name = company_name
-                    recipedetails.save()
                     return redirect('/recipe/details/' + str(recipe.id))
                 else:
                     recipe = form.save(commit=False)
-                    recipe.recipe_user = str(request.user)
+                    recipe.recipe_user = request.user.username
                     recipe.company_name = company_name
                     recipe.save()
                     recipedetails = RecipesModel.objects.get(recipe_user=str(request.user),
@@ -1473,3 +1470,41 @@ def set_preferred_ingredient_supplier(request, ing_id, ing_supplier_id):
     ingredient.countryOfOrigin = ing_supplier.country_of_origin
     ingredient.save()
     return redirect('/recipe/edit_ingredient_suppliers/' + str(ing_id))
+
+
+@login_required(login_url='/login')
+def allergen_recipes(request, rec_id):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session['company_name']
+    recipe = RecipesModel.objects.get(id=rec_id)
+    recipe_allergens = []
+    ingredient_recipes = []
+    for each_recipe in recipe.other_ing_data.all():
+        ingredient = Ingredients.objects.get(username=request.user.username, company_name=company_name,
+                                             name=each_recipe.ing_name)
+        if ingredient.hasMajorAllergens is None or ingredient.hasMajorAllergens == 'No':
+            ingredient_recipes.append(ingredient)
+        else:
+            print(ingredient.hasMajorAllergens)
+            recipe_allergens.append(ingredient.majorAllergens)
+    return render(
+        request,
+        'recipe_allergens.html',
+        {
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'many_companies': many_companies,
+            'company_details': company_details,
+            'company_name': company_name,
+            'recipe': recipe,
+            'recipe_allergens': recipe_allergens,
+            'ingredient_recipes': ingredient_recipes,
+        }
+    )

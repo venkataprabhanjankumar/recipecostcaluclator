@@ -1,0 +1,44 @@
+{% extends 'each_recipe_base_page.html' %}
+{% load list_iteration %}
+{% load division %}
+{% block content %}
+    <div class="col-lg-6 col-md-8">
+        <div class="panel panel-primary">
+          <div class="panel-heading">
+            Allergens
+          </div>
+          <div class="panel-body">
+            {% for each in recipe_allergens %}
+                {{ each | iterate_list }}
+            {% endfor %}
+          </div>
+        </div>
+    </div>
+    <br/><br/>
+    <div class="card-body table-responsive p-0" style="height: 300px;">
+    <table class="table table-head-fixed text-nowrap" id="items-display-table">
+      <thead>
+        <tr>
+          <th>Ingredients Without an Allergen Declaration</th>
+          <th>Price</th>
+          <th>Weight</th>
+          <th>Volume</th>
+          <th>Quantity</th>
+          <th>Price/unit</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for each_ingredient in ingredient_recipes %}
+            <tr>
+                <td>{{ each_ingredient.name }}</td>
+                <td>{{ each_ingredient.price }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>{{ each_ingredient.price | division:each_ingredient.caseQuantity | multi:each_ingredient.packSize }}</td>
+            </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
