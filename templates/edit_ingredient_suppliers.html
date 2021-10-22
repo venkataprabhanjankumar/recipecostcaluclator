@@ -32,7 +32,7 @@
                     <td>{{ ingredient_supplier.brand }}</td>
                     <td>{{ ingredient_supplier.packSize }}/{{ ingredient_supplier.caseQuantity }} {{ qty_units | get_item:ingredient_supplier.qtyUnits }}</td>
                     <td>${{ ingredient_supplier.price }}</td>
-                    <td>{{ ingredient_supplier.price | division:ingredient_supplier.caseQuantity | multi:ingredient_supplier.packSize }}</td>
+                    <td>{{ ingredient_supplier.price | division:ingredient_supplier.caseQuantity | division:ingredient_supplier.packSize | floatformat:2 }}</td>
                     <td>{% if ingredient_supplier.preferred %}<i class="fa fa-check" aria-hidden="true"></i>{% else %}
                         <a href="/recipe/preferred/{{ ingredient.id }}/{{ ingredient_supplier.id }}">Set Preferred</a>
                     {% endif %}</td>

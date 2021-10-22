@@ -8,6 +8,10 @@ class IngredientImages(models.Model):
     ingredient_image = models.ImageField(upload_to='ingredientimages', blank=True)
 
 
+class RecipeImages(models.Model):
+    recipe_image = models.ImageField(upload_to='recipeimages', blank=True)
+
+
 class Ingredients(models.Model):
     Category_Choices = [
         ("Food", "Food"),
@@ -232,6 +236,7 @@ class RecipesModel(models.Model):
     yield_units = models.CharField(max_length=225)
     other_ing_data = models.ManyToManyField(IngredientData)
     preparation_instructions = QuillField(blank=True)
+    recipe_images = models.ManyToManyField(RecipeImages, blank=True)
 
     class Meta:
         db_table = 'recipe_table'

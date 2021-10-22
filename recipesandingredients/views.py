@@ -14,7 +14,7 @@ from company.models import Company
 from .forms import IngredientsForm, RecipeForm, SuppliersForm, UpdateSupplier, StorageAreaForm, NutritionDetailsForm, \
     RecipePreparationInstructions, Ingredient_SupplierForm, UpdateIngredientSupplierForm
 from .models import Ingredients, RecipesModel, IngredientData, Suppliers, IngredientCategories, StorageAreas, \
-    IngredientImages, NutritionDetails, IngredientSuppliers
+    IngredientImages, NutritionDetails, IngredientSuppliers,RecipeImages
 from .units import qty_units
 
 
@@ -1065,7 +1065,6 @@ def ingredient_images(request, ing_id):
 @login_required(login_url='/login')
 def delete_ingredient_image(request, img_id):
     ing_image = IngredientImages.objects.get(id=img_id)
-    print(ing_image.ingredient_image)
     ing_image.delete()
     return redirect('/recipe/page')
 
@@ -1490,7 +1489,6 @@ def allergen_recipes(request, rec_id):
         if ingredient.hasMajorAllergens is None or ingredient.hasMajorAllergens == 'No':
             ingredient_recipes.append(ingredient)
         else:
-            print(ingredient.hasMajorAllergens)
             recipe_allergens.append(ingredient.majorAllergens)
     return render(
         request,
@@ -1505,6 +1503,58 @@ def allergen_recipes(request, rec_id):
             'company_name': company_name,
             'recipe': recipe,
             'recipe_allergens': recipe_allergens,
+            'qty_units': qty_units,
             'ingredient_recipes': ingredient_recipes,
+            'weight_units': Ingredients.qtyUnits_Choices[0],
+            'volume_units': Ingredients.qtyUnits_Choices[1],
+            'quantity_units': Ingredients.qtyUnits_Choices[2]
         }
     )
+
+
+@login_required(login_url='/login')
+def recipe_images(request,rec_id):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session.get('company_name')
+    recipe = RecipesModel.objects.get(id=rec_id)
+    if request.method == 'POST':
+        image = request.FILES.get('recipe_image')
+        recipe_image = RecipeImages.objects.create(recipe_image=image)
+        recipe_image.save()
+        recipe.recipe_images.add(recipe_image)
+        if 'back-to-recipe' in request.POST:
+            return redirect('/recipe/images/' + str(rec_id))
+        if 'back-to-dashboard' in request.POST:
+            return redirect('/recipe/recipelist')
+    else:
+        return render(
+            request,
+            'recipe_images.html',
+            {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'many_companies': many_companies,
+                'company_details': company_details,
+                'company_name': company_name,
+                'recipe': recipe,
+                'recipe_images': recipe.recipe_images.all()
+            }
+        )
+
+
+@login_required(login_url='/login')
+def delete_recipe_image(request,img_id):
+    RecipeImages.objects.get(id=img_id).delete()
+    return redirect('/recipe/recipelist')
+
+
+@login_required(login_url='/login')
+def planning_templete(request):
+    pass

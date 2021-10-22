@@ -78,7 +78,7 @@ class RecipeForm(forms.ModelForm):
 
     class Meta:
         model = RecipesModel
-        exclude = ('other_ing_data', 'recipe_user', 'company_name', 'preparation_instructions')
+        exclude = ('other_ing_data', 'recipe_user', 'company_name', 'preparation_instructions', 'recipe_images')
         fields = '__all__'
 
 

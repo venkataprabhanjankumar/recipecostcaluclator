@@ -38,7 +38,9 @@ urlpatterns = [
     path('edit_ingredient_supplier/edit/<int:ing_id>/<int:ing_supplier_id>', views.edit_each_ingredient_supplier),
     path('edit_ingredient_supplier/delete/<int:ing_id>/<int:ing_supplier_id>', views.delete_each_ingredient_supplier),
     path('preferred/<int:ing_id>/<int:ing_supplier_id>', views.set_preferred_ingredient_supplier),
-    path('allergens/<int:rec_id>', views.allergen_recipes)
+    path('allergens/<int:rec_id>', views.allergen_recipes),
+    path('images/<int:rec_id>', views.recipe_images),
+    path('deleterecipeimage/<int:img_id>', views.delete_recipe_image)
 ]
 
 if settings.DEBUG:

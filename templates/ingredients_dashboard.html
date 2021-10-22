@@ -324,7 +324,7 @@
                                 {{ ingrideient.price }}
                             </td>
                               <td>
-                                  {{ ingrideient.price | division:ingrideient.caseQuantity | multi:ingrideient.packSize }}
+                                  {{ ingrideient.price | division:ingrideient.caseQuantity | division:ingrideient.packSize | floatformat:2 }}
                               </td>
                             <td id="ingrident-category-item" style="display: none">
                                 {{ ingrideient.category }}
