@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from wsgiref.util import FileWrapper
 import io
 import csv
+import openpyxl
 
 from recipeapp.models import UserModel
 from company.models import Company
@@ -61,6 +62,7 @@ def handleIngredients(request):
                 indredients = Ingredients.objects.get(username=request.user, name=form.cleaned_data['name'],
                                                       company_name=company_name)
                 indredients.nutriationData = request.POST.get('nutri-data-link-value')
+                indredients.fdcId = request.POST.get('nutri-data-fdcid')
                 indredients.save()
                 if form.cleaned_data['suppliers'] == 'Add Supplier':
                     indredients.suppliers = request.POST.get('customsupplier')
@@ -419,6 +421,27 @@ def ingredient_details(request, ing_id):
     ingredient_recipes = RecipesModel.objects.filter(other_ing_data__ing_name=ingredient.name,
                                                      company_name=company_name, recipe_user=request.user.username)
     ingredient_suppliers = IngredientSuppliers.objects.filter(ingredient_relation=ingredient)
+    file_loc = "./measurments/nutrition_data.xlsx"
+    wookbook = openpyxl.load_workbook(file_loc)
+    worksheet = wookbook.active
+    nutri_data = []
+    nutri_fields = []
+    if ingredient.nutriationData == '':
+        has_nutridata = False
+    else:
+        if ingredient.fromMeasurementData == '':
+            has_nutridata = False
+        else:
+            has_nutridata = True
+            for i,j in enumerate(worksheet):
+                if i==1:
+                    for each_j in j:
+                        nutri_fields.append(each_j.value)
+                    break
+            for each in worksheet:
+                if each[1].value == ingredient.nutriationData:
+                    for col in each:
+                        nutri_data.append(col.value)
     return render(
         request,
         'each_ingridient_detail.html',
@@ -435,7 +458,9 @@ def ingredient_details(request, ing_id):
             'qty_units': qty_units,
             'ingredient_recipes': ingredient_recipes,
             'has_major_allergens': ingredient.hasMajorAllergens,
-            'major_allergens': ingredient.majorAllergens
+            'major_allergens': ingredient.majorAllergens,
+            'nutri_data': zip(nutri_data,nutri_fields),
+            'has_nutridata': has_nutridata,
         }
     )
 
@@ -483,6 +508,7 @@ def edit_ingredient(request, ing_id):
             indredients = Ingredients.objects.get(username=request.user, name=form.cleaned_data['name'],
                                                   company_name=company_name)
             indredients.nutriationData = request.POST.get('nutri-data-link-value')
+            indredients.fdcId = request.POST.get('nutri-data-fdcid')
             indredients.save()
             if form.cleaned_data['suppliers'] == 'Add Supplier':
                 indredients.suppliers = request.POST.get('customsupplier')

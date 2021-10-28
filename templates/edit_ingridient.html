@@ -142,12 +142,15 @@
                 <div class="form-group measurement-converters measurement-converters-JS">
           <label for="measurement_converters" class="form-label optional">Measurement Converters</label>
         <br/>
+        <p id="display-units-measurment-err" style="color: crimson"></p>
+        <br/>
         <p id="display-units-msg"></p>
         <br/>
         <div id="conversion_help" style="display: none">
 
         </div>
         <input type="hidden" name="nutri-data-link-value" value="{{ ingredient.nutriationData }}" id="nutri-data-link-value">
+        <input type="hidden" name="nutri-data-fdcid" value="{{ ingredient.fdcId }}" id="nutri-data-fdcid">
         <br/>
 
 

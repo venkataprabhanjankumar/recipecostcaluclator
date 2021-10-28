@@ -56,7 +56,8 @@ $(function (){
                         '<tr>'+
                           '<td class="ptm">'+
                             '<p>'+response.foods[i].description+'</p>'+
-                        '<strong>Data Type:</strong> '+"<span>"+response.foods[i].dataType+"</span>"+
+                        '<strong>Data Type:</strong> '+"<span>"+response.foods[i].dataType+"</span>" +
+                        "<b style='display: none'>"+response.foods[i].fdcId+"</b>"+
                           '</td>'+
                           '<td>'+
                             '<button class="btn choose_food" >Choose</button>'+
@@ -69,6 +70,8 @@ $(function (){
                 console.log($(this).closest('tr').find('.ptm p').text())
                 const selected_food = $(this).closest('tr').find('.ptm p').text()
                 const selected_datatype = $(this).closest('tr').find('.ptm span').text()
+                const fdcId = $(this).closest('tr').find('.ptm b').text()
+                console.log(fdcId)
                 const data = {'selected_food':selected_food}
                 $.ajaxSetup({
                     headers : {"X-CSRFToken":getCookie('csrftoken')},
@@ -78,6 +81,7 @@ $(function (){
                     document.getElementById("nutrient_database_search_results").innerHTML = null
                     $("#cached_usda_item_name").val(selected_food + '   Data Type:'+selected_datatype)
                     $("#nutri-data-link-value").val(selected_food)
+                    $("#nutri-data-fdcid").val(fdcId)
                     $("#cached_usda_item_name").attr("readonly","")
                     $("#clear_food").css("display","none")
                     $("#reset_food").css("display","block")
@@ -191,6 +195,7 @@ $(function (){
                         $("#nutri-link-btn").css({'display':'block'})
                         $("#nutri-link-btn-change").css({'display':'none'})
                         $("#nutri-data-link-value").val('')
+                        $("#nutri-data-fdcid").val('')
                         $("#conversion_help").css({'display':'none'})
                     });
                 })

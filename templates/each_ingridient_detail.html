@@ -73,9 +73,9 @@
           <div class="panel-body">
             <dl class="dl-horizontal">
 
-
               <dt>Country of Origin:</dt><dd>{{ ingredient.countryOfOrigin }}</dd>
               <dt>Category:</dt><dd>{{ ingredient.category }}</dd>
+                <dt>FDC ID:</dt><dd>{{ ingredient.fdcId }}</dd>
               <dt>Is Added Sugar:</dt><dd>{{ ingredient.sugarAdded }}</dd>
                 <dt>Storage Areas:</dt><dd>{{ ingredient.storageAreas }}</dd>
                 <dt>Par Level:</dt><dd>{{ ingredient.parLevel }}</dd>
@@ -125,4 +125,33 @@
             </div>
             </div>
         </div>
+        <div class="col-lg-6">
+            <div class="panel panel-primary">
+              <div class="panel-heading">
+                Nutrition Data
+              </div>
+                {% if has_nutridata %}
+                    <div class="panel-body">
+                          <h4 class="mt0">Recommended Daily Intakes</h4>
+                        <p>Please choose the correct set of recommended daily intakes for your purpose.</p>
+                          <em>Please contact the company owner to change this setting if necessary.</em>
+                        <table class="table table-striped">
+                            <tbody>
+                                {% for each_nutri,each_nutri_filed in nutri_data %}
+                                    <tr>
+                                        <td>{{ each_nutri_filed }}</td>
+                                        <td>{{ each_nutri }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p>This ingredient has no nutrition information associated.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
 {% endblock %}

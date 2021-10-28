@@ -165,6 +165,7 @@ class Ingredients(models.Model):
     parLevel = models.IntegerField(null=True, blank=True)
     parUnits = models.CharField(max_length=225, null=True, blank=True, choices=qtyUnits_Choices)
     nutriationData = models.CharField(max_length=225, null=True, blank=True)
+    fdcId = models.CharField(max_length=225, null=True, blank=True)
     fromMeasurementData = ArrayField(models.FloatField(), null=True, blank=True)
     fromMeasurementUnits = ArrayField(models.CharField(max_length=225), null=True, blank=True)
     toMeasurementData = ArrayField(models.FloatField(), null=True, blank=True)

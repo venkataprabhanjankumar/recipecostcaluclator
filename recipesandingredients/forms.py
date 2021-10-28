@@ -56,7 +56,7 @@ class IngredientsForm(forms.ModelForm):
     class Meta:
         model = Ingredients
         exclude = ('username', 'fromMeasurementData', 'fromMeasurementUnits', 'toMeasurementData', 'toMeasurementUnits',
-                   'company_name')
+                   'company_name', 'fdcId')
         fields = '__all__'
 
 
