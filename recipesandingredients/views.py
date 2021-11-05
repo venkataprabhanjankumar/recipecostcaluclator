@@ -13,9 +13,9 @@ from recipeapp.models import UserModel
 from company.models import Company
 
 from .forms import IngredientsForm, RecipeForm, SuppliersForm, UpdateSupplier, StorageAreaForm, NutritionDetailsForm, \
-    RecipePreparationInstructions, Ingredient_SupplierForm, UpdateIngredientSupplierForm
+    RecipePreparationInstructions, Ingredient_SupplierForm, UpdateIngredientSupplierForm,ProductionPlanTemplateForm,ProductionPlanForm
 from .models import Ingredients, RecipesModel, IngredientData, Suppliers, IngredientCategories, StorageAreas, \
-    IngredientImages, NutritionDetails, IngredientSuppliers,RecipeImages
+    IngredientImages, NutritionDetails, IngredientSuppliers,RecipeImages,ProductionPlanTemplate,ProductionPlan,Recipes
 from .units import qty_units
 
 
@@ -253,7 +253,6 @@ def handleRecipes(request):
                             ing_description=request.POST.getlist('ingDescription')[i]
                         )
                         recipe.other_ing_data.add(ingredient)
-                        print("Recipe Added")
                     return redirect('/recipe/details/' + str(recipe.id))
 
     else:
@@ -461,6 +460,7 @@ def ingredient_details(request, ing_id):
             'major_allergens': ingredient.majorAllergens,
             'nutri_data': zip(nutri_data,nutri_fields),
             'has_nutridata': has_nutridata,
+            'ingredient_measurments': zip(ingredient.fromMeasurementData,ingredient.fromMeasurementUnits,ingredient.toMeasurementData,ingredient.toMeasurementUnits)
         }
     )
 
@@ -1582,5 +1582,289 @@ def delete_recipe_image(request,img_id):
 
 
 @login_required(login_url='/login')
-def planning_templete(request):
-    pass
+def production_plan_dashboard(request):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session.get('company_name')
+    productionplans = ProductionPlan.objects.filter(user=request.user.username,company_name=company_name)
+    return render(
+        request,
+        'planning_dashboard.html',
+        {
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'many_companies': many_companies,
+            'company_details': company_details,
+            'company_name': company_name,
+            'productionplans': productionplans
+        }
+    )
+
+
+@login_required(login_url='/login')
+def productionplantemplate(request):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session.get('company_name')
+    try:
+        instance = ProductionPlanTemplate.objects.get(user=request.user.username,company_name=company_name)
+        if request.method == 'POST':
+            form = ProductionPlanTemplateForm(instance=instance,data=request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect('/recipe/productionplantemplate')
+        else:
+            form = ProductionPlanTemplateForm(instance=instance)
+            return render(
+                request,
+                'production_plan_templete.html',
+                {
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'many_companies': many_companies,
+                    'company_details': company_details,
+                    'company_name': company_name,
+                    'form': form
+                }
+            )
+    except ProductionPlanTemplate.DoesNotExist:
+        if request.method == 'POST':
+            form = ProductionPlanTemplateForm(request.POST)
+            if form.is_valid():
+                productionplan = form.save(commit=False)
+                productionplan.user = request.user.username
+                productionplan.company_name = company_name
+                productionplan.save()
+                return redirect('/recipe/productionplantemplate')
+        else:
+            form = ProductionPlanTemplateForm()
+            return render(
+                request,
+                'production_plan_templete.html',
+                {
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'many_companies': many_companies,
+                    'company_details': company_details,
+                    'company_name': company_name,
+                    'form': form
+                }
+            )
+
+@login_required(login_url='/login')
+def new_production_plan(request):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session.get('company_name')
+    recipes = RecipesModel.objects.filter(recipe_user=request.user.username,company_name=company_name)
+    recipe_categories = IngredientCategories.objects.filter(user=request.user.username,company_name=company_name,
+                                                            category_type='recipe')
+    if request.method == 'POST':
+        form = ProductionPlanForm(request.POST)
+        if form.is_valid():
+            plan = form.save(commit=False)
+            plan.user = request.user.username
+            plan.company_name = company_name
+            plan.save()
+            planinstance = ProductionPlan.objects.get(id=plan.id)
+            if 'recipename' in request.POST:
+                recipenames = request.POST.getlist('recipename')
+                recipeyieldcounts = request.POST.getlist('yieldCount')
+                recipebatches = request.POST.getlist('categorybatch')
+                for i in range(len(recipenames)):
+                    recipe = Recipes.objects.create(recipe_name=recipenames[i],target_yield=recipeyieldcounts[i],
+                                           category_batch=recipebatches[i])
+                    planinstance.recipes.add(recipe)
+            return redirect('/recipe/productionplan')
+        else:
+            return render(
+                request,
+                'create_production_plan.html',
+                {
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'many_companies': many_companies,
+                    'company_details': company_details,
+                    'company_name': company_name,
+                    'recipes': recipes,
+                    'form': form,
+                    'recipe_categories': recipe_categories
+                }
+            )
+    else:
+        form = ProductionPlanForm()
+        return render(
+            request,
+            'create_production_plan.html',
+            {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'many_companies': many_companies,
+                'company_details': company_details,
+                'company_name': company_name,
+                'recipes': recipes,
+                'form': form,
+                'recipe_categories': recipe_categories
+            }
+        )
+
+@login_required(login_url='/login')
+def get_recipe_details(request):
+    if request.method == 'POST':
+        other_ingredients = []
+        selected_recipe = request.POST.get('selected_recipe')
+        recipe = RecipesModel.objects.get(recipe_name=selected_recipe,recipe_user=request.user.username,
+                                          company_name=request.session.get('company_name'))
+        for other_ingredient in recipe.other_ing_data.all():
+            ingredient = Ingredients.objects.get(name=other_ingredient.ing_name,username=request.user.username,
+                                                 company_name=request.session.get('company_name'))
+            other_ingredients.append([other_ingredient.ing_name,other_ingredient.ing_amount,ingredient.caseQuantity,ingredient.packSize,ingredient.qtyUnits])
+        return HttpResponse(json.dumps({'recipe_name':recipe.recipe_name,'yield_count':recipe.recipe_yield_count,'yield_units':recipe.yield_units,'other_ingredient':other_ingredients}),content_type='application/json')
+
+
+@login_required(login_url='/login')
+def get_recipes_from_category(request):
+    if request.method == 'POST':
+        recipes_data = []
+        selected_category = request.POST.get('selected_category')
+        recipes = RecipesModel.objects.filter(recipe_category=selected_category,recipe_user=request.user.username,
+                                              company_name=request.session.get('company_name'))
+        for recipe in recipes:
+            other_ingredients = []
+            for other_ingredient in recipe.other_ing_data.all():
+                ingredient = Ingredients.objects.get(name=other_ingredient.ing_name, username=request.user.username,
+                                                     company_name=request.session.get('company_name'))
+                other_ingredients.append(
+                    [other_ingredient.ing_name, other_ingredient.ing_amount, ingredient.caseQuantity,
+                     ingredient.packSize, ingredient.qtyUnits])
+            recipes_data.append([recipe.recipe_name,recipe.recipe_yield_count,recipe.yield_units,other_ingredients])
+        return HttpResponse(json.dumps({'recipe_data':recipes_data}),content_type='application/json')
+
+
+@login_required(login_url='/login')
+def edit_production_plan(request,plan_id):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session.get('company_name')
+    instance = ProductionPlan.objects.get(id=plan_id)
+    if instance.recipes.count() == 0:
+        has_recipes = False
+    else:
+        has_recipes = True
+    recipes = RecipesModel.objects.filter(recipe_user=request.user.username, company_name=company_name)
+    recipe_categories = IngredientCategories.objects.filter(user=request.user.username, company_name=company_name,
+                                                            category_type='recipe')
+    if request.method == 'POST':
+        form = ProductionPlanForm(instance=instance,data=request.POST)
+        if form.is_valid():
+            form.save()
+            if 'recipename' not in request.POST:
+                instance.recipes.clear()
+            else:
+                instance.recipes.clear()
+                recipenames = request.POST.getlist('recipename')
+                recipeyieldcounts = request.POST.getlist('yieldCount')
+                recipebatches = request.POST.getlist('categorybatch')
+                for i in range(len(recipenames)):
+                    recipe = Recipes.objects.create(recipe_name=recipenames[i], target_yield=recipeyieldcounts[i],
+                                                    category_batch=recipebatches[i])
+                    instance.recipes.add(recipe)
+            return redirect('/recipe/editplan/'+str(plan_id))
+        else:
+            return render(
+                request,
+                'edit_production_plan.html',
+                {
+                    'username': user.username,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'many_companies': many_companies,
+                    'company_details': company_details,
+                    'company_name': company_name,
+                    'recipes': recipes,
+                    'form': form,
+                    'recipe_categories': recipe_categories,
+                    'has_recipes': has_recipes,
+                    'linked_recipes': instance.recipes.all(),
+                    'plan': instance
+                }
+            )
+    else:
+        form = ProductionPlanForm(instance=instance)
+        return render(
+            request,
+            'edit_production_plan.html',
+            {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'many_companies': many_companies,
+                'company_details': company_details,
+                'company_name': company_name,
+                'recipes': recipes,
+                'form': form,
+                'recipe_categories': recipe_categories,
+                'has_recipes': has_recipes,
+                'linked_recipes': instance.recipes.all(),
+                'plan': instance
+            }
+        )
+
+@login_required(login_url='/login')
+def delete_production_plan(request,plan_id):
+    ProductionPlan.objects.get(id=plan_id).delete()
+    return redirect('/recipe/productionplan')
+
+@login_required(login_url='/login')
+def each_plan_details(request,plan_id):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session.get('company_name')
+    plan = ProductionPlan.objects.get(id=plan_id)
+    print(plan.date_field)
+    return render(
+        request,
+        'each_production_plan_details.html',
+        {
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'many_companies': many_companies,
+            'company_details': company_details,
+            'company_name': company_name,
+            'plan': plan
+        }
+    )

@@ -15,14 +15,9 @@
   <!-- Theme style -->
   <link rel="stylesheet" href="{% static 'dist/css/adminlte.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/handleingredients.css' %}">
-    <link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css' %}">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="{% static 'js/handle_recipies.js' %}"></script>
-    <script src="{% static 'js/company_options.js' %}"></script>
     {% include 'django_quill/media.html' %}
 </head>
 <body class="hold-transition sidebar-mini">
-{% block body %}
 <div class="wrapper">
 
   <!-- Navbar -->
@@ -147,33 +142,21 @@
           <br/><br/>
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           <li class="nav-item menu-open">
-                <li class="nav-item">
-                    <a href="/recipe/newrecipe"><i class="fa fa-plus" aria-hidden="true"></i> Create Recipe</a>
-                </li>
+              <li class="nav-item">
+                <a href="{% url 'production_plan' %}"><i class="fa fa-table" aria-hidden="true"></i> List Production Plans</a>
+              </li>
+              <br/>
+              <li class="nav-item">
+                <a href="{% url 'new_production_plan' %}"><i class="fa fa-plus" aria-hidden="true"></i> New Production Plan</a>
+              </li>
+              <br/>
+              <li class="nav-item">
+                <a href="#"><i class="fas fa-copy"></i> Production Plan Template</a>
+              </li>
                 <br/>
-                <li class="nav-item">
-                    <a href="/recipe/edit/{{ recipe.id }}"><i class="fas fa-edit"></i> Edit Recipe</a>
-                </li>
-                <br/>
-                <li class="nav-item">
-                    <a href="/recipe/details/{{ recipe.id }}"><i class="fa fa-dollar" aria-hidden="true"></i> Costing</a>
-                </li>
-                <br/>
-                <li class="nav-item">
-                    <a href="/recipe/preparation/{{ recipe.id }}"><i class="fa fa-wrench" aria-hidden="true"></i> Preparation Instructions</a>
-                </li>
-                <br/>
-                <li class="nav-item">
-                    <a href="/recipe/allergens/{{ recipe.id }}"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> Allergens</a>
-                </li>
-                <br/>
-                <li class="nav-item">
-                    <a href="/recipe/images/{{ recipe.id }}"><i class="fa fa-picture-o" aria-hidden="true"></i> Images</a>
-                </li>
-                <br/>
-                <li class="nav-item">
-                    <a href="{% url 'feedback' %}"><i class="fa fa-commenting" aria-hidden="true"></i> Send Feedback</a>
-                </li>
+              <li class="nav-item">
+                <a href="{% url 'feedback' %}"><i class="fa fa-commenting" aria-hidden="true"></i> Send Feedback</a>
+              </li>
           </li>
         </ul>
       </nav>
@@ -186,19 +169,18 @@
   </aside>
 
   <!-- Content Wrapper. Contains page content -->
-    {% block main %}
       <div class="content-wrapper">
         <div class="content">
           <div class="container-fluid">
               <br/><br/>
-                <!-- main content -->
-                {% block content %}
-
-                {% endblock %}
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form | crispy }}
+                    <button type="submit" class="btn btn-success">{% trans 'Save' %}</button><br/>
+                </form>
           </div>
         </div>
       </div>
-    {% endblock main %}
 
   <!-- Control Sidebar -->
   <aside class="control-sidebar control-sidebar-dark">
@@ -215,7 +197,6 @@
 
   </footer>
 </div>
-{% endblock body %}
 <!-- ./wrapper -->
 
 <!-- REQUIRED SCRIPTS -->
