@@ -48,7 +48,8 @@ urlpatterns = [
     path('getrecipesfromcategory', views.get_recipes_from_category),
     path('editplan/<int:plan_id>', views.edit_production_plan),
     path('deleteplan/<int:plan_id>', views.delete_production_plan),
-    path('plandetails/<int:plan_id>', views.each_plan_details)
+    path('plandetails/<int:plan_id>', views.each_plan_details),
+    path('copy/<int:rec_id>', views.copy_recipe)
 ]
 
 if settings.DEBUG:

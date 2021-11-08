@@ -903,12 +903,13 @@ def handle_measurement(request):
     print(request.POST)
     units = ['oz', 'lb', 'Kg', 'T', 'g', 'pinch', 'tsp', 'tbsp', 'floz', 'dL', 'cup', 'pt', 'ml', 'qt', 'L', 'gal',
              'kl', 'each', 'dozen', 'hundred', 'thousand', 'million', 's', 'min', 'hr']
+    data = []
     with open('./measurments/measurements.csv', 'r') as csv_file:
         csv_reader = csv.reader(csv_file)
         fields = next(csv_reader)
-        data = []
         for row in csv_reader:
             if row[1] == request.POST.get('selected_food'):
+                print(row)
                 if row[7] != 'Quantity not specified':
                     if row[7].split(' ')[-1] in units and len(row[7].split(' ')) == 2:
                         for each_qty in Ingredients.qtyUnits_Choices:
@@ -918,7 +919,15 @@ def handle_measurement(request):
                                         data.append([row[7], row[8], each[0]])
                     else:
                         data.append(['1 each ' + row[7], row[8], 'Each (each)'])
-        print(data)
+    with open('./measurments/food_portion.csv','r') as csvfile:
+        csvreader = csv.reader(csvfile)
+        for each in csvreader:
+            if each[1] == request.POST.get('fdcId'):
+                for each_qty in Ingredients.qtyUnits_Choices:
+                    for qty in each_qty[1:2]:
+                        for eachq in qty:
+                            if eachq[0][eachq[0].index("(") + 1:eachq[0].index(")")] == each[6]:
+                                data.append([each[3] + ' ' + each[6], each[7],eachq[0]])
     return HttpResponse({json.dumps({'measurement_units': data})}, content_type='application/json')
 
 
@@ -1866,5 +1875,44 @@ def each_plan_details(request,plan_id):
             'company_details': company_details,
             'company_name': company_name,
             'plan': plan
+        }
+    )
+
+
+@login_required(login_url='/login')
+def copy_recipe(request,rec_id):
+    user = UserModel.objects.get(username=request.user)
+    company_details = Company.objects.filter(user=request.user)
+    other_ing = []
+    if company_details.count() > 1:
+        many_companies = True
+    else:
+        many_companies = False
+    company_name = request.session.get('company_name')
+    recipe = RecipesModel.objects.get(id=rec_id)
+    ingredients = Ingredients.objects.filter(username=request.user, company_name=company_name)
+    if recipe.other_ing_data.all().count() == 0:
+        has_other = False
+    else:
+        has_other = True
+        for each_ing in recipe.other_ing_data.all():
+            other_ing.append([each_ing.ing_name, each_ing.ing_amount, each_ing.ing_units, each_ing.ing_description])
+    form = RecipeForm(instance=recipe,request=request)
+    return render(
+        request,
+        'copy_recipe.html',
+        {
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'many_companies': many_companies,
+            'company_details': company_details,
+            'company_name': company_name,
+            'form': form,
+            'recipe': recipe,
+            'has_other': has_other,
+            'ingredients': ingredients,
+            'other_ing': other_ing,
         }
     )
