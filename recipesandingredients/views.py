@@ -1489,20 +1489,25 @@ def delete_each_ingredient_supplier(request, ing_id, ing_supplier_id):
 @login_required(login_url='/login')
 def set_preferred_ingredient_supplier(request, ing_id, ing_supplier_id):
     ingredient = Ingredients.objects.get(id=ing_id)
-    ingredient_supplier = IngredientSuppliers.objects.get(ingredient_relation=ingredient, preferred=True)
-    ingredient_supplier.preferred = False
-    ingredient_supplier.save()
-    ing_supplier = IngredientSuppliers.objects.get(id=ing_supplier_id)
-    ing_supplier.preferred = True
-    ing_supplier.save()
-    ingredient.price = ing_supplier.price
-    ingredient.caseQuantity = ing_supplier.caseQuantity
-    ingredient.packSize = ing_supplier.packSize
-    ingredient.qtyUnits = ing_supplier.qtyUnits
-    ingredient.orderCode = ing_supplier.order_code
-    ingredient.brand = ing_supplier.brand
-    ingredient.countryOfOrigin = ing_supplier.country_of_origin
-    ingredient.save()
+    try:
+        ingredient_supplier = IngredientSuppliers.objects.get(ingredient_relation=ingredient, preferred=True)
+        ingredient_supplier.preferred = False
+        ingredient_supplier.save()
+        ing_supplier = IngredientSuppliers.objects.get(id=ing_supplier_id)
+        ing_supplier.preferred = True
+        ing_supplier.save()
+        ingredient.price = ing_supplier.price
+        ingredient.caseQuantity = ing_supplier.caseQuantity
+        ingredient.packSize = ing_supplier.packSize
+        ingredient.qtyUnits = ing_supplier.qtyUnits
+        ingredient.orderCode = ing_supplier.order_code
+        ingredient.brand = ing_supplier.brand
+        ingredient.countryOfOrigin = ing_supplier.country_of_origin
+        ingredient.save()
+    except IngredientSuppliers.DoesNotExist:
+        ing_supp =  IngredientSuppliers.objects.get(ingredient_relation=ingredient)
+        ing_supp.preferred = True
+        ing_supp.save()
     return redirect('/recipe/edit_ingredient_suppliers/' + str(ing_id))
 
 
